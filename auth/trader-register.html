@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+        content="Register as a gas trader on GAS-INFO">
+
+    <title>Trader Registration | GAS-INFO</title>
+
+    <!-- LEAFLET MAP -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0f1115;
+            color: #f1f1f1;
+            min-height: 100vh;
+        }
+
+        /* =========================
+           HEADER / NAVBAR
+        ========================= */
+
+        .site-header {
+            width: 100%;
+            background: #151821;
+            border-bottom: 1px solid #292d38;
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 1200px;
+            margin: auto;
+            min-height: 64px;
+            padding: 10px 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .brand {
+            color: #f1f1f1;
+            text-decoration: none;
+            font-size: 22px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a,
+        .theme-toggle {
+            color: #f1f1f1;
+            text-decoration: none;
+            font-size: 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover,
+        .theme-toggle:hover {
+            opacity: 0.7;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #f1f1f1;
+            font-size: 26px;
+            cursor: pointer;
+        }
+
+        /* =========================
+           PAGE
+        ========================= */
+
+        .page {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 45px 18px 60px;
+        }
+
+        .page-heading {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .page-heading h1 {
+            margin: 0 0 10px;
+            font-size: 34px;
+        }
+
+        .page-heading p {
+            margin: 0;
+            color: #aeb4c0;
+            line-height: 1.6;
+        }
+
+        .register-card {
+            background: #151821;
+            border: 1px solid #292d38;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+        }
+
+        /* =========================
+           FORM SECTIONS
+        ========================= */
+
+        .form-section {
+            margin-bottom: 32px;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-section h2 {
+            margin: 0 0 8px;
+            font-size: 21px;
+        }
+
+        .section-note {
+            margin: 0 0 20px;
+            color: #aeb4c0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .required {
+            color: #ff7777;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px 13px;
+            border-radius: 9px;
+            border: 1px solid #363b47;
+            background: #0f1115;
+            color: #f1f1f1;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #6d7482;
+        }
+
+        input::placeholder {
+            color: #737985;
+        }
+
+        select option {
+            background: #151821;
+            color: #f1f1f1;
+        }
+
+        .help-text {
+            color: #858b97;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* =========================
+           SHOP MAP LOCATION
+        ========================= */
+
+        .map-box {
+            grid-column: 1 / -1;
+            margin-top: 4px;
+            padding: 17px;
+            border: 1px solid #363b47;
+            border-radius: 11px;
+            background: #11141a;
+        }
+
+        .map-box h3 { margin: 0 0 7px; font-size: 16px; }
+        .map-box p { margin: 0 0 14px; color: #aeb4c0; font-size: 13px; line-height: 1.5; }
+        #shopMap { width: 100%; height: 340px; border-radius: 10px; overflow: hidden; background: #222; }
+        .map-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 13px; }
+        .map-btn { border: 1px solid #444a57; border-radius: 8px; padding: 10px 13px; background: #20242d; color: #f1f1f1; cursor: pointer; font-weight: 600; }
+        .coordinates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 13px; }
+        .coordinate { padding: 10px; border: 1px solid #303541; border-radius: 8px; background: #0f1115; font-size: 12px; }
+        .coordinate strong { display: block; margin-bottom: 4px; color: #858b97; }
+        .map-status { margin-top: 12px !important; margin-bottom: 0 !important; }
+
+        body.light-theme .map-box { background: #f3f3f3; border-color: #cccccc; }
+        body.light-theme .map-box p { color: #555; }
+        body.light-theme .map-btn { background: #fff; color: #171717; border-color: #ccc; }
+        body.light-theme .coordinate { background: #fff; color: #171717; border-color: #ccc; }
+
+        /* =========================
+           DUPLICATE CHECK
+        ========================= */
+
+        .duplicate-box {
+            margin-top: 22px;
+            padding: 17px;
+            border: 1px solid #514c35;
+            border-radius: 11px;
+            background: #1a1915;
+        }
+
+        .duplicate-box h3 {
+            margin: 0 0 7px;
+            font-size: 16px;
+        }
+
+        .duplicate-box p {
+            margin: 0;
+            color: #bcb8a9;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .duplicate-actions {
+            display: none;
+            margin-top: 14px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .duplicate-actions button {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .go-login {
+            background: #292d38;
+            color: #fff;
+        }
+
+        .continue-registration {
+            background: #e5e5e5;
+            color: #111;
+        }
+
+        /* =========================
+           TERMS
+        ========================= */
+
+        .terms-box {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #292d38;
+            border-radius: 10px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .checkbox-row input {
+            width: auto;
+            margin-top: 3px;
+        }
+
+        .checkbox-row label {
+            font-size: 13px;
+            line-height: 1.5;
+            font-weight: normal;
+        }
+
+        .checkbox-row a {
+            color: inherit;
+            text-decoration: underline;
+        }
+
+        /* =========================
+           BUTTON
+        ========================= */
+
+        .submit-btn {
+            width: 100%;
+            margin-top: 24px;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #f1f1f1;
+            color: #111;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.85;
+        }
+
+        .login-text {
+            margin: 20px 0 0;
+            text-align: center;
+            color: #aeb4c0;
+            font-size: 14px;
+        }
+
+        .login-text a {
+            color: #f1f1f1;
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        /* =========================
+           INFO
+        ========================= */
+
+        .info-box {
+            margin-top: 22px;
+            padding: 15px;
+            border-left: 3px solid #555b68;
+            background: #11141a;
+            color: #aeb4c0;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        .site-footer {
+            width: 100%;
+            padding: 25px 20px;
+            background: #151821;
+            border-top: 1px solid #292d38;
+            text-align: center;
+        }
+
+        .footer-links {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto 12px;
+
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px 18px;
+        }
+
+        .footer-links a {
+            color: #f1f1f1;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-disclaimer {
+            max-width: 850px;
+            margin: 0 auto;
+            color: #858b97;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        /* =========================
+           LIGHT THEME
+        ========================= */
+
+        body.light-theme {
+            background: #f5f6f8;
+            color: #171717;
+        }
+
+        body.light-theme .site-header,
+        body.light-theme .register-card,
+        body.light-theme .site-footer {
+            background: #ffffff;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .nav-links a,
+        body.light-theme .brand,
+        body.light-theme .theme-toggle,
+        body.light-theme .menu-toggle,
+        body.light-theme .footer-links a,
+        body.light-theme .login-text a {
+            color: #171717;
+        }
+
+        body.light-theme .page-heading p,
+        body.light-theme .section-note,
+        body.light-theme .login-text {
+            color: #555;
+        }
+
+        body.light-theme input,
+        body.light-theme select {
+            background: #ffffff;
+            color: #171717;
+            border-color: #cccccc;
+        }
+
+        body.light-theme select option {
+            background: #ffffff;
+            color: #171717;
+        }
+
+        body.light-theme .info-box {
+            background: #f3f3f3;
+            color: #555;
+        }
+
+        body.light-theme .duplicate-box {
+            background: #f8f7f0;
+            border-color: #d5cfad;
+        }
+
+        body.light-theme .duplicate-box p {
+            color: #666;
+        }
+
+        body.light-theme .site-footer .footer-disclaimer {
+            color: #666;
+        }
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 760px) {
+
+            .navbar {
+                min-height: 60px;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                padding: 8px 0;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a,
+            .theme-toggle {
+                padding: 11px 5px;
+                text-align: left;
+                width: 100%;
+            }
+
+            .navbar {
+                flex-wrap: wrap;
+            }
+
+            .form-grid,
+            .coordinates {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+
+            .register-card {
+                padding: 21px;
+            }
+
+            .page-heading h1 {
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .site-footer {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .footer-links {
+                gap: 10px 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- =========================
+         NAVBAR
+    ========================== -->
+
+    <header class="site-header">
+        <nav class="navbar">
+
+            <a href="../index.html" class="brand">
+                GAS-INFO
+            </a>
+
+            <button
+                class="menu-toggle"
+                id="menuToggle"
+                type="button"
+                aria-label="Open navigation menu"
+                aria-controls="mainNav"
+                aria-expanded="false">
+                ☰
+            </button>
+
+            <div class="nav-links" id="mainNav">
+
+                <a href="../index.html">Home</a>
+
+                <a href="../index.html#search">
+                    Search / Explore
+                </a>
+
+                <a href="../results/all.html">ALL</a>
+
+                <a href="../results/high-rated.html">
+                    HIGH-RATED
+                </a>
+
+                <a href="../results/others.html">
+                    OTHERS
+                </a>
+
+                <a href="../updates.html">
+                    Updates
+                </a>
+
+                <a href="../reviews.html">
+                    Rate &amp; Reviews
+                </a>
+
+                <a href="login.html">
+                    Customer / Trader
+                </a>
+
+                <button
+                    id="themeToggle"
+                    type="button"
+                    class="theme-toggle">
+                    ☾ Theme
+                </button>
+
+            </div>
+        </nav>
+    </header>
+
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="page">
+
+        <div class="page-heading">
+            <h1>Trader Registration</h1>
+
+            <p>
+                Create your GAS-INFO trader account and register
+                your gas shop information.
+            </p>
+        </div>
+
+
+        <section class="register-card">
+
+            <form id="traderRegisterForm">
+
+
+                <!-- =========================
+                     ACCOUNT DETAILS
+                ========================== -->
+
+                <div class="form-section">
+
+                    <h2>Account Details</h2>
+
+                    <p class="section-note">
+                        These details are used for your GAS-INFO
+                        trader account.
+                    </p>
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+                            <label for="username">
+                                Username <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                placeholder="Enter username"
+                                required>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="email">
+                                Account Email <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="Enter account email"
+                                required>
+
+                            <span class="help-text">
+                                This email is linked to your trader account.
+                            </span>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="password">
+                                Password <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Create password"
+                                required>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="confirmPassword">
+                                Confirm Password
+                                <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="password"
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                placeholder="Confirm password"
+                                required>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================
+                     SHOP DETAILS
+                ========================== -->
+
+                <div class="form-section">
+
+                    <h2>Shop Details</h2>
+
+                    <p class="section-note">
+                        Enter the information customers will use
+                        to identify and contact your shop.
+                    </p>
+
+                    <div class="form-grid">
+
+
+                        <div class="form-group full">
+                            <label for="shopName">
+                                Shop Name <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                id="shopName"
+                                name="shopName"
+                                placeholder="Enter your shop name"
+                                required>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="phone">
+                                Shop Phone <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="phone"
+                                name="phone"
+                                placeholder="Enter shop contact number"
+                                required>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="businessEmail">
+                                Business Email
+                            </label>
+
+                            <input
+                                type="email"
+                                id="businessEmail"
+                                name="businessEmail"
+                                placeholder="Enter business email">
+
+                            <span class="help-text">
+                                Optional if different from your account email.
+                            </span>
+                        </div>
+
+
+                        <!-- PROVINCE -->
+
+                        <div class="form-group">
+                            <label for="province">
+                                Province <span class="required">*</span>
+                            </label>
+
+                            <select
+                                id="province"
+                                name="province"
+                                required>
+
+                                <option value="">
+                                    Select Province
+                                </option>
+
+                                <!-- Actual choices will be loaded
+                                     from GAS-INFO location data later. -->
+
+                            </select>
+                        </div>
+
+
+                        <!-- DISTRICT -->
+
+                        <div class="form-group">
+                            <label for="district">
+                                District <span class="required">*</span>
+                            </label>
+
+                            <select
+                                id="district"
+                                name="district"
+                                required
+                                disabled>
+
+                                <option value="">
+                                    Select District
+                                </option>
+
+                            </select>
+                        </div>
+
+
+                        <!-- =========================
+     MUNICIPALITY
+========================== -->
+
+<div class="form-group">
+
+    <label for="municipality">
+        Municipality <span class="required">*</span>
+    </label>
+
+    <select
+        id="municipality"
+        name="municipality"
+        required
+        disabled>
+
+        <option value="">
+            Select Municipality
+        </option>
+
+    </select>
+
+</div>
+
+
+<!-- =========================
+     WARD
+========================== -->
+
+<div class="form-group">
+
+    <label for="wardNo">
+        Ward No. <span class="required">*</span>
+    </label>
+
+    <select
+        id="wardNo"
+        name="wardNo"
+        required
+        disabled>
+
+        <option value="">
+            Select Ward No.
+        </option>
+
+    </select>
+
+</div>
+
+
+<!-- =========================
+     TOWN / VILLAGE
+========================== -->
+
+<div class="form-group">
+
+    <label for="townVillage">
+        Town / Village <span class="required">*</span>
+    </label>
+
+    <input
+        type="text"
+        id="townVillage"
+        name="townVillage"
+        placeholder="Enter town or village"
+        required>
+
+    <span class="help-text">
+        Enter the town or village where the shop is located.
+    </span>
+
+</div>
+
+
+<!-- =========================
+     EXACT LOCATION
+========================== -->
+
+<div class="form-group full">
+
+    <label for="exactLocation">
+        Exact Location <span class="required">*</span>
+    </label>
+
+    <input
+        type="text"
+        id="exactLocation"
+        name="exactLocation"
+        placeholder="Enter exact shop location"
+        required>
+
+    <span class="help-text">
+        Enter the specific location of your shop,
+        such as road, chowk, tole or nearby landmark.
+    </span>
+
+</div>
+
+
+<!-- =========================
+     SHOP MAP LOCATION
+========================== -->
+
+<div class="map-box">
+    <h3>Set Exact Shop Location <span class="required">*</span></h3>
+    <p>Tap the map to place your shop pin, then drag it if needed. GPS permission is optional; manual pin selection always works.</p>
+
+    <div id="shopMap"></div>
+
+    <div class="map-actions">
+        <button type="button" class="map-btn" id="currentLocationBtn">Use My Current Location</button>
+        <button type="button" class="map-btn" id="clearLocationBtn">Clear Pin</button>
+    </div>
+
+    <div class="coordinates">
+        <div class="coordinate"><strong>Latitude</strong><span id="latitudeDisplay">Not selected</span></div>
+        <div class="coordinate"><strong>Longitude</strong><span id="longitudeDisplay">Not selected</span></div>
+    </div>
+
+    <input type="hidden" id="latitude" name="latitude">
+    <input type="hidden" id="longitude" name="longitude">
+
+    <p class="map-status" id="mapStatus">No shop map location selected yet.</p>
+</div>
+
+
+<!-- =========================
+     DUPLICATE SHOP CHECK
+========================== -->
+
+<div class="duplicate-box">
+
+    <h3>
+        Duplicate Shop Registration Check
+    </h3>
+
+    <p id="duplicateMessage">
+        Before registration is completed, GAS-INFO will
+        check whether a similar shop already exists using
+        shop information, contact details, business
+        information and location.
+    </p>
+
+    <div
+        class="duplicate-actions"
+        id="duplicateActions">
+
+        <button
+            type="button"
+            class="go-login"
+            id="goLogin">
+            Go to Login
+        </button>
+
+        <button
+            type="button"
+            class="continue-registration"
+            id="continueRegistration">
+            Continue Registration
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     IMPORTANT INFORMATION
+========================== -->
+
+<div class="info-box">
+
+    <strong>Important:</strong>
+
+    By registering as a trader, you are responsible for
+    providing accurate shop information and keeping your
+    information up to date.
+
+    GAS-INFO is an information platform and does not sell,
+    purchase, book, reserve or deliver gas cylinders.
+
+</div>
+
+
+<!-- =========================
+     TERMS & LEGAL AGREEMENT
+========================== -->
+
+<div class="terms-box">
+
+    <div class="checkbox-row">
+
+        <input
+            type="checkbox"
+            id="terms"
+            name="terms"
+            required>
+
+        <label for="terms">
+
+            I agree to the
+            <a href="../terms.html">
+                Terms &amp; Penalties
+            </a>
+            and
+            <a href="../legal.html">
+                Legal &amp; Compliance
+            </a>
+            of GAS-INFO.
+
+            I confirm that the shop information I provide
+            is accurate to the best of my knowledge.
+
+            <span class="required">*</span>
+
+        </label>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     SUBMIT BUTTON
+========================== -->
+
+<button
+    type="submit"
+    class="submit-btn">
+
+    Create Trader Account
+
+</button>
+
+
+<p class="login-text">
+
+    Already have a trader account?
+
+    <a href="login.html">
+        Login here
+    </a>
+
+</p>
+
+
+</form>
+
+</section>
+
+</main>
+
+
+<!-- =========================
+     FOOTER
+========================== -->
+
+<footer class="site-footer">
+
+    <div class="footer-links">
+
+        <a href="../about.html">
+            About Us
+        </a>
+
+        <a href="../reviews.html">
+            Rate &amp; Reviews
+        </a>
+
+        <a href="../updates.html">
+            Updates
+        </a>
+
+        <a href="../terms.html">
+            Terms &amp; Penalties
+        </a>
+
+        <a href="../legal.html">
+            Legal &amp; Compliance
+        </a>
+
+        <a href="../contact.html">
+            Contact / Report
+        </a>
+
+    </div>
+
+    <p class="footer-disclaimer">
+
+        Stock information is provided by the trader and may
+        change at any time. Please check the latest
+        information before visiting.
+
+    </p>
+
+</footer>
+
+
+<!-- LEAFLET MAP -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+<!-- =========================
+     JAVASCRIPT
+========================== -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+
+    /* =========================
+       MOBILE MENU
+    ========================== */
+
+    const menuToggle =
+        document.getElementById("menuToggle");
+
+    const mainNav =
+        document.getElementById("mainNav");
+
+    if (menuToggle && mainNav) {
+
+        menuToggle.addEventListener(
+            "click",
+            function () {
+
+                const isOpen =
+                    mainNav.classList.toggle("open");
+
+                menuToggle.setAttribute(
+                    "aria-expanded",
+                    isOpen ? "true" : "false"
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================
+       THEME
+    ========================== */
+
+    const themeToggle =
+        document.getElementById("themeToggle");
+
+    if (themeToggle) {
+
+        const savedTheme =
+            localStorage.getItem("gasInfoTheme");
+
+        if (savedTheme === "light") {
+
+            document.body.classList.add(
+                "light-theme"
+            );
+
+        }
+
+        themeToggle.addEventListener(
+            "click",
+            function () {
+
+                document.body.classList.toggle(
+                    "light-theme"
+                );
+
+                const isLight =
+                    document.body.classList.contains(
+                        "light-theme"
+                    );
+
+                localStorage.setItem(
+                    "gasInfoTheme",
+                    isLight ? "light" : "dark"
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================
+       LOCATION HIERARCHY
+       
+       Province
+          ↓
+       District
+          ↓
+       Municipality
+          ↓
+       Ward
+          ↓
+       Town / Village
+          ↓
+       Exact Location
+    ========================== */
+
+    const province =
+        document.getElementById("province");
+
+    const district =
+        document.getElementById("district");
+
+    const municipality =
+        document.getElementById("municipality");
+
+    const wardNo =
+        document.getElementById("wardNo");
+
+
+    /*
+     * Actual GAS-INFO location data will be connected
+     * with the database later.
+     *
+     * No fake province/district/municipality/ward data
+     * is inserted here.
+     */
+
+
+    province.addEventListener(
+        "change",
+        function () {
+
+            district.disabled =
+                !province.value;
+
+            municipality.disabled = true;
+            wardNo.disabled = true;
+
+            district.value = "";
+            municipality.value = "";
+            wardNo.value = "";
+
+        }
+    );
+
+
+    district.addEventListener(
+        "change",
+        function () {
+
+            municipality.disabled =
+                !district.value;
+
+            wardNo.disabled = true;
+
+            municipality.value = "";
+            wardNo.value = "";
+
+        }
+    );
+
+
+    municipality.addEventListener(
+        "change",
+        function () {
+
+            wardNo.disabled =
+                !municipality.value;
+
+            wardNo.value = "";
+
+        }
+    );
+
+
+    /* =========================
+       DUPLICATE SHOP CHECK UI
+    ========================== */
+
+    const duplicateMessage =
+        document.getElementById(
+            "duplicateMessage"
+        );
+
+    const duplicateActions =
+        document.getElementById(
+            "duplicateActions"
+        );
+
+    const goLogin =
+        document.getElementById(
+            "goLogin"
+        );
+
+    const continueRegistration =
+        document.getElementById(
+            "continueRegistration"
+        );
+
+
+    /*
+     * IMPORTANT:
+     *
+     * The real duplicate-shop check requires
+     * the GAS-INFO backend/database.
+     *
+     * This frontend does NOT pretend that
+     * a database check has already happened.
+     */
+
+
+    function showDuplicateWarning() {
+
+        duplicateMessage.textContent =
+            "A possible duplicate shop was found. " +
+            "Please check whether you already have an " +
+            "existing GAS-INFO trader account or shop listing.";
+
+        duplicateActions.style.display =
+            "flex";
+
+    }
+
+
+    if (goLogin) {
+
+        goLogin.addEventListener(
+            "click",
+            function () {
+
+                window.location.href =
+                    "login.html";
+
+            }
+        );
+
+    }
+
+
+    if (continueRegistration) {
+
+        continueRegistration.addEventListener(
+            "click",
+            function () {
+
+                duplicateActions.style.display =
+                    "none";
+
+                duplicateMessage.textContent =
+                    "You chose to continue registration. " +
+                    "The final duplicate-shop check will " +
+                    "be performed by the GAS-INFO backend.";
+
+            }
+        );
+
+    }
+
+
+    /* =========================
+       FORM VALIDATION
+    ========================== */
+
+    const form =
+        document.getElementById(
+            "traderRegisterForm"
+        );
+
+    form.addEventListener(
+        "submit",
+        function (event) {
+
+            event.preventDefault();
+
+
+            const password =
+                document.getElementById(
+                    "password"
+                ).value;
+
+            const confirmPassword =
+                document.getElementById(
+                    "confirmPassword"
+                ).value;
+
+
+            /* PASSWORD MATCH */
+
+            if (password !== confirmPassword) {
+
+                alert(
+                    "Passwords do not match."
+                );
+
+                return;
+
+            }
+
+
+            /* REQUIRED LOCATION */
+
+            if (
+                !province.value ||
+                !district.value ||
+                !municipality.value ||
+                !wardNo.value
+            ) {
+
+                alert(
+                    "Please complete the location hierarchy."
+                );
+
+                return;
+
+            }
+
+
+            /* REQUIRED SHOP MAP LOCATION */
+
+            if (
+                !latitudeInput.value ||
+                !longitudeInput.value
+            ) {
+
+                alert(
+                    "Please select the exact shop location on the map."
+                );
+
+                document.getElementById("shopMap").scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+
+                return;
+
+            }
+
+
+            /* TERMS */
+
+            const terms =
+                document.getElementById(
+                    "terms"
+                );
+
+            if (!terms.checked) {
+
+                alert(
+                    "Please agree to the Terms & Legal requirements."
+                );
+
+                return;
+
+            }
+
+
+            /*
+             * BACKEND CONNECTION COMES LATER.
+             *
+             * This will eventually perform:
+             *
+             * 1. Account validation
+             * 2. Email verification
+             * 3. Duplicate-shop detection
+             * 4. User creation
+             * 5. Shop creation
+             * 6. Secure password hashing
+             * 7. Trader role assignment
+             * 8. Database relationship creation
+             * 9. Store shop latitude and longitude
+             *
+             * No fake registration is performed here.
+             */
+
+
+            alert(
+                "Trader registration form is ready. " +
+                "Backend account and shop registration " +
+                "will be connected in the authentication " +
+                "and database phase."
+            );
+
+        }
+    );
+
+});
+
+</script>
+
+</body>
+</html>
