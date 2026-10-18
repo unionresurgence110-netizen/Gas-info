@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+        content="GAS-INFO Updates and Notifications">
+
+    <title>Updates | GAS-INFO</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* =========================
+           UPDATES PAGE
+           ========================= */
+
+        .updates-hero {
+            text-align: center;
+            padding: 65px 20px 35px;
+        }
+
+        .updates-hero h1 {
+            font-size: clamp(2rem, 6vw, 3.2rem);
+            margin-bottom: 12px;
+        }
+
+        .updates-hero p {
+            max-width: 700px;
+            margin: auto;
+            line-height: 1.7;
+            opacity: 0.8;
+        }
+
+        .updates-container {
+            width: min(1000px, 92%);
+            margin: auto;
+            padding-bottom: 60px;
+        }
+
+        .updates-card {
+            border: 1px solid rgba(128, 128, 128, 0.25);
+            background: rgba(128, 128, 128, 0.07);
+            border-radius: 18px;
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .updates-card h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .updates-card p {
+            line-height: 1.7;
+            margin-bottom: 0;
+        }
+
+        .update-item {
+            display: flex;
+            gap: 18px;
+            align-items: flex-start;
+        }
+
+        .update-icon {
+            min-width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(128, 128, 128, 0.3);
+            font-size: 20px;
+        }
+
+        .update-content {
+            flex: 1;
+        }
+
+        .update-content h3 {
+            margin: 0 0 6px;
+        }
+
+        .update-content p {
+            margin: 0;
+            line-height: 1.6;
+            opacity: 0.8;
+        }
+
+        .update-date {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            opacity: 0.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 45px 20px;
+        }
+
+        .empty-icon {
+            font-size: 45px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h2 {
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            max-width: 600px;
+            margin: auto;
+            line-height: 1.7;
+            opacity: 0.75;
+        }
+
+        .login-note {
+            margin-top: 20px;
+            text-align: center;
+            line-height: 1.6;
+            opacity: 0.75;
+        }
+
+
+        /* =========================
+           NAVBAR — SAME AS ABOUT/HOME
+           ========================= */
+
+        .site-header {
+            width: 100%;
+            background: #151821;
+            border-bottom: 1px solid #292d38;
+            box-sizing: border-box;
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 82px;
+            padding: 0 24px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            box-sizing: border-box;
+        }
+
+        .brand {
+            color: #f1f1f1;
+            text-decoration: none;
+            font-size: 25px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            color: #d8dce5;
+            text-decoration: none;
+            font-size: 16px;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        .theme-toggle {
+            border: 1px solid #292d38;
+            background: transparent;
+            color: #d8dce5;
+            padding: 9px 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .theme-toggle:hover {
+            background: #1d212b;
+        }
+
+        .menu-toggle {
+            display: none;
+
+            border: 1px solid #292d38;
+            background: #151821;
+            color: #f1f1f1;
+
+            width: 40px;
+            height: 40px;
+
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+
+        /* =========================
+           MOBILE NAVIGATION
+           ========================= */
+
+        @media (max-width: 900px) {
+
+            .navbar {
+                min-height: 110px;
+                padding: 0 32px;
+                position: relative;
+            }
+
+            .menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .nav-links {
+                display: none;
+
+                position: absolute;
+                top: 110px;
+                left: 0;
+                width: 100%;
+
+                background: #151821;
+                border-bottom: 1px solid #292d38;
+
+                flex-direction: column;
+                align-items: flex-start;
+
+                padding: 26px 32px;
+                gap: 10px;
+
+                box-sizing: border-box;
+                z-index: 1000;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a {
+                font-size: 18px;
+            }
+
+            .theme-toggle {
+                border: none;
+                padding: 0;
+                font-size: 18px;
+                background: transparent;
+            }
+        }
+
+
+        /* =========================
+           LIGHT / BRIGHT MODE
+           ========================= */
+
+        body.light-theme {
+            background: #f5f6f8;
+            color: #171717;
+        }
+
+        body.light-theme .site-header {
+            background: #ffffff;
+            border-bottom-color: #dddddd;
+        }
+
+        body.light-theme .brand {
+            color: #171717;
+        }
+
+        body.light-theme .nav-links a {
+            color: #444444;
+        }
+
+        body.light-theme .nav-links a:hover {
+            color: #171717;
+        }
+
+        body.light-theme .theme-toggle {
+            color: #444444;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .theme-toggle:hover {
+            background: #eeeeee;
+        }
+
+        body.light-theme .menu-toggle {
+            background: #ffffff;
+            color: #171717;
+            border-color: #dddddd;
+        }
+
+        @media (max-width: 900px) {
+
+            body.light-theme .nav-links {
+                background: #ffffff;
+                border-bottom-color: #dddddd;
+            }
+
+            body.light-theme .theme-toggle {
+                border: none;
+                background: transparent;
+            }
+        }
+
+
+        /* =========================
+           FOOTER
+           ========================= */
+
+        .site-footer {
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .site-footer .footer-links {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+
+            gap: 12px 20px;
+            box-sizing: border-box;
+        }
+
+        .site-footer .footer-links a {
+            white-space: normal;
+            text-align: center;
+        }
+
+
+        /* =========================
+           SMALL SCREENS
+           ========================= */
+
+        @media (max-width: 700px) {
+
+            .updates-card {
+                padding: 21px;
+            }
+
+            .update-item {
+                gap: 13px;
+            }
+
+            .update-icon {
+                min-width: 40px;
+                height: 40px;
+            }
+
+            .updates-hero {
+                padding: 50px 18px 30px;
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .site-footer {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .site-footer .footer-links {
+                gap: 10px 14px;
+            }
+        }
+    </style>
+</head>
+
+
+<body>
+
+
+    <!-- =========================
+         NAVBAR
+         ========================= -->
+
+    <header class="site-header">
+
+        <nav class="navbar">
+
+            <a href="index.html" class="brand">
+                GAS-INFO
+            </a>
+
+
+            <button class="menu-toggle"
+                    id="menuToggle"
+                    type="button"
+                    aria-label="Open navigation menu"
+                    aria-controls="mainNav"
+                    aria-expanded="false">
+                ☰
+            </button>
+
+
+            <div class="nav-links" id="mainNav">
+
+                <a href="index.html">
+                    Home
+                </a>
+
+                <a href="index.html#search">
+                    Search / Explore
+                </a>
+
+                <a href="results/all.html">
+                    ALL
+                </a>
+
+                <a href="results/high-rated.html">
+                    HIGH-RATED
+                </a>
+
+                <a href="results/others.html">
+                    OTHERS
+                </a>
+
+                <a href="updates.html">
+                    Updates
+                </a>
+
+                <a href="reviews.html">
+                    Rate &amp; Reviews
+                </a>
+
+                <a href="auth/login.html">
+                    Customer / Trader
+                </a>
+
+                <button id="themeToggle"
+                        type="button"
+                        class="theme-toggle">
+                    ☾ Theme
+                </button>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+
+    <!-- =========================
+         PAGE CONTENT
+         ========================= -->
+
+    <main>
+
+
+        <!-- PAGE INTRO -->
+
+        <section class="updates-hero">
+
+            <h1>
+                Updates &amp; Notifications
+            </h1>
+
+            <p>
+                Stay informed about important updates, account activity,
+                reports and other notifications related to GAS-INFO.
+            </p>
+
+        </section>
+
+
+
+        <div class="updates-container">
+
+
+            <!-- CURRENT SYSTEM STATUS -->
+
+            <section class="updates-card">
+
+                <h2>
+                    GAS-INFO Updates
+                </h2>
+
+                <div class="update-item">
+
+                    <div class="update-icon">
+                        ℹ
+                    </div>
+
+                    <div class="update-content">
+
+                        <h3>
+                            Updates will appear here
+                        </h3>
+
+                        <p>
+                            Important platform updates and announcements
+                            will be displayed here as GAS-INFO grows.
+                        </p>
+
+                        <span class="update-date">
+                            System updates
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- EMPTY NOTIFICATION STATE -->
+
+            <section class="updates-card">
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        🔔
+                    </div>
+
+                    <h2>
+                        No new notifications
+                    </h2>
+
+                    <p>
+                        You currently have no new notifications.
+                        Notifications related to your account and
+                        platform activity will appear here when available.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- LOGIN INFORMATION -->
+
+            <section class="updates-card">
+
+                <h2>
+                    Account Notifications
+                </h2>
+
+                <p>
+                    Some notifications may be available only after
+                    signing in to your GAS-INFO account.
+                </p>
+
+                <p class="login-note">
+                    Customer and trader account notifications will be
+                    connected to the notification system during the
+                    backend and database development phase.
+                </p>
+
+            </section>
+
+
+
+            <!-- TRADER INFORMATION -->
+
+            <section class="updates-card">
+
+                <div class="update-item">
+
+                    <div class="update-icon">
+                        🏪
+                    </div>
+
+                    <div class="update-content">
+
+                        <h3>
+                            Trader Updates
+                        </h3>
+
+                        <p>
+                            Traders may receive notifications related to
+                            stock updates, reports, account activity and
+                            other relevant platform events.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- CUSTOMER INFORMATION -->
+
+            <section class="updates-card">
+
+                <div class="update-item">
+
+                    <div class="update-icon">
+                        👤
+                    </div>
+
+                    <div class="update-content">
+
+                        <h3>
+                            Customer Updates
+                        </h3>
+
+                        <p>
+                            Customers may receive relevant notifications
+                            about their account activity and supported
+                            GAS-INFO features after the notification
+                            system is connected.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+        </div>
+
+    </main>
+
+
+
+    <!-- =========================
+         FOOTER
+         ========================= -->
+
+    <footer class="site-footer">
+
+        <div class="footer-links">
+
+            <a href="about.html">
+                About Us
+            </a>
+
+            <a href="reviews.html">
+                Rate &amp; Reviews
+            </a>
+
+            <a href="updates.html">
+                Updates
+            </a>
+
+            <a href="terms.html">
+                Terms &amp; Penalties
+            </a>
+
+            <a href="legal.html">
+                Legal &amp; Compliance
+            </a>
+
+            <a href="contact.html">
+                Contact / Report
+            </a>
+
+        </div>
+
+
+        <p>
+            &copy; 2026 GAS-INFO. Information platform only.
+        </p>
+
+    </footer>
+
+
+
+    <!-- =========================
+         MOBILE MENU + THEME
+         ========================= -->
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+
+            /* =========================
+               MOBILE MENU
+               ========================= */
+
+            const menuToggle =
+                document.getElementById("menuToggle");
+
+            const mainNav =
+                document.getElementById("mainNav");
+
+
+            if (menuToggle && mainNav) {
+
+                menuToggle.addEventListener("click", function (event) {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    mainNav.classList.toggle("open");
+
+                    const isOpen =
+                        mainNav.classList.contains("open");
+
+                    menuToggle.setAttribute(
+                        "aria-expanded",
+                        isOpen ? "true" : "false"
+                    );
+
+                    menuToggle.setAttribute(
+                        "aria-label",
+                        isOpen
+                            ? "Close navigation menu"
+                            : "Open navigation menu"
+                    );
+
+                });
+
+
+                /* CLOSE MENU AFTER CLICKING A LINK */
+
+                const navLinks =
+                    mainNav.querySelectorAll("a");
+
+
+                navLinks.forEach(function (link) {
+
+                    link.addEventListener("click", function () {
+
+                        mainNav.classList.remove("open");
+
+                        menuToggle.setAttribute(
+                            "aria-expanded",
+                            "false"
+                        );
+
+                        menuToggle.setAttribute(
+                            "aria-label",
+                            "Open navigation menu"
+                        );
+
+                    });
+
+                });
+
+            }
+
+
+
+            /* =========================
+               THEME TOGGLE
+               ========================= */
+
+            const themeToggle =
+                document.getElementById("themeToggle");
+
+
+            if (themeToggle) {
+
+                const savedTheme =
+                    localStorage.getItem("gasInfoTheme");
+
+
+                /* RESTORE SAVED THEME */
+
+                if (savedTheme === "light") {
+
+                    document.body.classList.add(
+                        "light-theme"
+                    );
+
+                }
+
+
+                /* CHANGE THEME */
+
+                themeToggle.addEventListener(
+                    "click",
+                    function () {
+
+                        document.body.classList.toggle(
+                            "light-theme"
+                        );
+
+
+                        const isLight =
+                            document.body.classList.contains(
+                                "light-theme"
+                            );
+
+
+                        localStorage.setItem(
+                            "gasInfoTheme",
+                            isLight
+                                ? "light"
+                                : "dark"
+                        );
+
+                    }
+                );
+
+            }
+
+        });
+
+    </script>
+
+
+</body>
+
+</html>

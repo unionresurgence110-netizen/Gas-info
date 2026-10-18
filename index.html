@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GAS-INFO | Home</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+/* INDEX-ONLY FIXES */
+.hero-banner{
+  position:relative;
+  padding:0;
+  overflow:hidden;
+  width:100%;
+}
+
+.hero-banner img{
+  display:block;
+  width:100%;
+  height:auto;
+  object-fit:contain;
+}
+
+.hero-banner .hero-overlay{
+  display:none;
+}
+
+.index-nav-extra{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+</style>
+</head>
+
+<body>
+<header class="navbar">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">GAS-INFO</a>
+
+    <!-- Navbar: ONLY navigation items -->
+    <nav id="nav-links" class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="index.html#search">Search / Explore</a>
+      <a href="results/all.html">ALL</a>
+      <a href="results/high-rated.html">HIGH-RATED</a>
+      <a href="results/others.html">OTHERS</a>
+      <a href="updates.html">Updates</a>
+      <a href="reviews.html">Rate &amp; Reviews</a>
+      <a href="auth/login.html">Customer / Trader</a>
+      <button class="nav-btn" onclick="toggleTheme()">☾ Theme</button>
+    </nav>
+
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+  </div>
+
+  <div id="mobile-menu" class="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="index.html#search">Search / Explore</a>
+    <a href="results/all.html">ALL</a>
+    <a href="results/high-rated.html">HIGH-RATED</a>
+    <a href="results/others.html">OTHERS</a>
+    <a href="updates.html">Updates</a>
+    <a href="reviews.html">Rate &amp; Reviews</a>
+    <a href="auth/login.html">Customer / Trader</a>
+    <a href="#" onclick="toggleTheme();return false">☾ Theme</a>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- Banner: no extra text placed over the generated banner -->
+  <section class="hero hero-banner">
+    <img src="public/image/banner.png"
+         alt="GAS-INFO gas availability banner">
+  </section>
+
+  <section id="search" class="search-card">
+    <h2>Search Availability</h2>
+
+    <input id="search-input"
+           class="search-bar"
+           onclick="openSearch()"
+           placeholder="Click to enter location, cylinder and quantity">
+
+    <form id="search-form"
+          class="search-form"
+          onsubmit="event.preventDefault();document.querySelector('#results').style.display='block'">
+
+      <div class="grid">
+        <div>
+          <label>Province</label>
+          <select><option>Select Province</option></select>
+        </div>
+
+        <div>
+          <label>District</label>
+          <select><option>Select District</option></select>
+        </div>
+
+        <div>
+          <label>Municipality</label>
+          <select><option>Select Municipality</option></select>
+        </div>
+
+        <div>
+          <label>Ward No.</label>
+          <select><option>Select Ward</option></select>
+        </div>
+
+        <div>
+          <label>Town / Village</label>
+          <input placeholder="Enter town / village">
+        </div>
+
+        <div>
+          <label>Exact Location</label>
+          <input placeholder="Enter exact location">
+        </div>
+
+        <div>
+          <label>Gas / Cylinder Name</label>
+          <input placeholder="Cylinder name">
+        </div>
+
+        <div>
+          <label>Quantity</label>
+          <input type="number" min="1" placeholder="Quantity">
+        </div>
+      </div>
+
+      <button class="btn" type="submit">Search</button>
+      <button class="btn secondary" type="button" onclick="closeSearch()">Close</button>
+    </form>
+  </section>
+
+  <section id="results" style="display:none">
+    <h2 class="section-title">Results</h2>
+    <div class="tabs">
+      <a href="results/all.html">ALL</a>
+      <a href="results/high-rated.html">HIGH-RATED</a>
+      <a href="results/others.html">OTHERS</a>
+    </div>
+    <div class="notice">
+      No live shop data is connected yet. Results will appear after the database/search phase.
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Welcome to GAS-INFO</h2>
+    <p>
+      GAS-INFO connects customers with trader-provided information
+      about gas cylinder availability in their area.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Important</h2>
+    <p class="muted">
+      Stock information is provided by the trader and may change at any time.
+      Please check the latest information before visiting the shop.
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div>
+      <h3>GAS-INFO</h3>
+      <p class="muted">
+        Gas cylinder availability information platform.
+        Information is provided by traders and may change at any time.
+      </p>
+    </div>
+
+    <div class="footer-links">
+      <h3>Information</h3>
+      <a href="about.html">About Us</a>
+      <a href="reviews.html">Rate &amp; Reviews</a>
+      <a href="updates.html">Updates</a>
+    </div>
+
+    <div class="footer-links">
+      <h3>Legal</h3>
+      <a href="terms.html">Terms &amp; Penalties</a>
+      <a href="legal.html">Legal &amp; Compliance</a>
+      <a href="contact.html">Contact / Report</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/script.js"></script>
+<script>
+/* Keep ALL / HIGH-RATED / OTHERS visible in the index navbar,
+   even if the older shared script.js has an older NAV list. */
+document.addEventListener("DOMContentLoaded", function(){
+  const nav = document.getElementById("nav-links");
+  const mobile = document.getElementById("mobile-menu");
+
+  nav.innerHTML = `
+    <a href="index.html">Home</a>
+    <a href="index.html#search">Search / Explore</a>
+    <a href="results/all.html">ALL</a>
+    <a href="results/high-rated.html">HIGH-RATED</a>
+    <a href="results/others.html">OTHERS</a>
+    <a href="updates.html">Updates</a>
+    <a href="reviews.html">Rate &amp; Reviews</a>
+    <a href="auth/login.html">Customer / Trader</a>
+    <button class="nav-btn" onclick="toggleTheme()">☾ Theme</button>
+  `;
+
+  mobile.innerHTML = `
+    <a href="index.html">Home</a>
+    <a href="index.html#search">Search / Explore</a>
+    <a href="results/all.html">ALL</a>
+    <a href="results/high-rated.html">HIGH-RATED</a>
+    <a href="results/others.html">OTHERS</a>
+    <a href="updates.html">Updates</a>
+    <a href="reviews.html">Rate &amp; Reviews</a>
+    <a href="auth/login.html">Customer / Trader</a>
+    <a href="#" onclick="toggleTheme();return false">☾ Theme</a>
+  `;
+});
+</script>
+</body>
+</html>

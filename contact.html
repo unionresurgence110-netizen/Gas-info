@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="Contact and Report issues to GAS-INFO">
+
+    <title>Contact / Report | GAS-INFO</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0f1115;
+            color: #f1f1f1;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           NAVBAR
+           ========================= */
+
+        .site-header {
+            width: 100%;
+            background: #151821;
+            border-bottom: 1px solid #292d38;
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 1200px;
+            min-height: 82px;
+            margin: 0 auto;
+            padding: 0 32px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            color: #f1f1f1;
+            text-decoration: none;
+            font-size: 32px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: #d8dce5;
+            text-decoration: none;
+            font-size: 16px;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        .theme-toggle {
+            border: 1px solid #292d38;
+            background: transparent;
+            color: #d8dce5;
+            padding: 9px 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .theme-toggle:hover {
+            background: #1d212b;
+        }
+
+        .menu-toggle {
+            display: none;
+            border: 1px solid #292d38;
+            background: #151821;
+            color: #f1f1f1;
+            width: 58px;
+            height: 58px;
+            border-radius: 12px;
+            font-size: 25px;
+            cursor: pointer;
+        }
+
+        /* =========================
+           MAIN
+           ========================= */
+
+        main {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 55px 24px 70px;
+        }
+
+        .page-heading {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        .page-heading h1 {
+            margin: 0 0 12px;
+            font-size: 38px;
+        }
+
+        .page-heading p {
+            max-width: 720px;
+            margin: 0 auto;
+            color: #aeb4c0;
+            font-size: 17px;
+        }
+
+        /* =========================
+           CONTACT CARDS
+           ========================= */
+
+        .contact-section {
+            background: #151821;
+            border: 1px solid #292d38;
+            border-radius: 14px;
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+
+        .contact-section h2 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 25px;
+        }
+
+        .contact-section p {
+            color: #c1c6d0;
+            margin-top: 0;
+        }
+
+        .contact-list {
+            display: grid;
+            gap: 14px;
+            margin-top: 20px;
+        }
+
+        .contact-item {
+            background: #10131a;
+            border: 1px solid #292d38;
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .contact-item strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #f1f1f1;
+        }
+
+        .contact-item span {
+            color: #aeb4c0;
+        }
+
+        /* =========================
+           REPORT TYPES
+           ========================= */
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .report-card {
+            background: #10131a;
+            border: 1px solid #292d38;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .report-card h3 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .report-card p {
+            margin-bottom: 0;
+            font-size: 15px;
+        }
+
+        /* =========================
+           NOTICE
+           ========================= */
+
+        .notice {
+            background: #10131a;
+            border: 1px solid #292d38;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .notice strong {
+            display: block;
+            margin-bottom: 6px;
+            color: #f1f1f1;
+        }
+
+        .notice p {
+            margin: 0;
+        }
+
+        /* =========================
+           FOOTER
+           ========================= */
+
+        .site-footer {
+            width: 100%;
+            background: #151821;
+            border-top: 1px solid #292d38;
+            padding: 30px 20px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .footer-links {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+
+            gap: 12px 20px;
+        }
+
+        .footer-links a {
+            color: #aeb4c0;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: #ffffff;
+        }
+
+        .footer-copy {
+            margin: 18px 0 0;
+            color: #777f8d;
+            font-size: 14px;
+        }
+
+        /* =========================
+           LIGHT THEME
+           ========================= */
+
+        body.light-theme {
+            background: #f5f6f8;
+            color: #171717;
+        }
+
+        body.light-theme .site-header {
+            background: #ffffff;
+            border-bottom-color: #dddddd;
+        }
+
+        body.light-theme .brand {
+            color: #171717;
+        }
+
+        body.light-theme .nav-links a {
+            color: #444444;
+        }
+
+        body.light-theme .nav-links a:hover {
+            color: #171717;
+        }
+
+        body.light-theme .theme-toggle {
+            color: #444444;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .theme-toggle:hover {
+            background: #eeeeee;
+        }
+
+        body.light-theme .menu-toggle {
+            background: #ffffff;
+            color: #171717;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .page-heading p {
+            color: #555555;
+        }
+
+        body.light-theme .contact-section {
+            background: #ffffff;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .contact-section p {
+            color: #555555;
+        }
+
+        body.light-theme .contact-item,
+        body.light-theme .report-card,
+        body.light-theme .notice {
+            background: #f5f6f8;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .contact-item strong,
+        body.light-theme .notice strong {
+            color: #222222;
+        }
+
+        body.light-theme .contact-item span {
+            color: #555555;
+        }
+
+        body.light-theme .site-footer {
+            background: #ffffff;
+            border-top-color: #dddddd;
+        }
+
+        body.light-theme .footer-links a {
+            color: #444444;
+        }
+
+        body.light-theme .footer-links a:hover {
+            color: #171717;
+        }
+
+        /* =========================
+           MOBILE
+           ========================= */
+
+        @media (max-width: 900px) {
+
+            .navbar {
+                min-height: 110px;
+                padding: 0 32px;
+                position: relative;
+            }
+
+            .menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .nav-links {
+                display: none;
+
+                position: absolute;
+                top: 110px;
+                left: 0;
+
+                width: 100%;
+
+                background: #151821;
+                border-bottom: 1px solid #292d38;
+
+                flex-direction: column;
+                align-items: flex-start;
+
+                padding: 26px 32px;
+                gap: 28px;
+
+                z-index: 1000;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a {
+                font-size: 18px;
+            }
+
+            .theme-toggle {
+                border: none;
+                padding: 0;
+                font-size: 18px;
+            }
+
+            body.light-theme .nav-links {
+                background: #ffffff;
+                border-bottom-color: #dddddd;
+            }
+
+            main {
+                padding: 45px 18px 60px;
+            }
+
+            .page-heading h1 {
+                font-size: 32px;
+            }
+
+            .contact-section {
+                padding: 23px 20px;
+            }
+
+            .report-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .navbar {
+                padding: 0 18px;
+            }
+
+            .brand {
+                font-size: 27px;
+            }
+
+            .menu-toggle {
+                width: 52px;
+                height: 52px;
+            }
+
+            .nav-links {
+                padding-left: 22px;
+                padding-right: 22px;
+            }
+
+            .page-heading h1 {
+                font-size: 29px;
+            }
+
+            .page-heading p {
+                font-size: 15px;
+            }
+
+            .contact-section h2 {
+                font-size: 22px;
+            }
+
+            .footer-links {
+                gap: 10px 14px;
+            }
+
+            .site-footer {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- =========================
+         NAVBAR
+         ========================= -->
+
+    <header class="site-header">
+
+        <nav class="navbar">
+
+            <a href="index.html" class="brand">
+                GAS-INFO
+            </a>
+
+            <button class="menu-toggle"
+                    id="menuToggle"
+                    type="button"
+                    aria-label="Open navigation menu"
+                    aria-controls="mainNav"
+                    aria-expanded="false">
+                ☰
+            </button>
+
+            <div class="nav-links" id="mainNav">
+
+                <a href="index.html">
+                    Home
+                </a>
+
+                <a href="index.html#search">
+                    Search / Explore
+                </a>
+
+                <a href="results/all.html">
+                    ALL
+                </a>
+
+                <a href="results/high-rated.html">
+                    HIGH-RATED
+                </a>
+
+                <a href="results/others.html">
+                    OTHERS
+                </a>
+
+                <a href="updates.html">
+                    Updates
+                </a>
+
+                <a href="reviews.html">
+                    Rate &amp; Reviews
+                </a>
+
+                <a href="auth/login.html">
+                    Customer / Trader
+                </a>
+
+                <button id="themeToggle"
+                        type="button"
+                        class="theme-toggle">
+                    ☾ Theme
+                </button>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+    <!-- =========================
+         MAIN CONTENT
+         ========================= -->
+
+    <main>
+
+        <section class="page-heading">
+
+            <h1>&#128222;Contact / Report</h1>
+
+            <p>
+                Contact GAS-INFO or report an issue with
+                information displayed on the platform.
+            </p>
+
+        </section>
+
+
+        <!-- CONTACT -->
+
+        <section class="contact-section">
+
+            <h2>Contact GAS-INFO</h2>
+
+            <p>
+                For general platform questions, suggestions,
+                legal concerns, or other supported issues,
+                please use the official GAS-INFO contact channel.
+            </p>
+
+            <div class="contact-list">
+
+                <div class="contact-item">
+
+                    <strong>Email</strong>
+
+                    <span>
+                        Official GAS-INFO contact email will be
+                        added before public launch.
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- REPORT -->
+
+        <section class="contact-section">
+
+            <h2>Report an Information Issue</h2>
+
+            <p>
+                If you believe information displayed on GAS-INFO
+                may be incorrect, you can report the relevant issue.
+            </p>
+
+            <div class="report-grid">
+
+                <div class="report-card">
+
+                    <h3>Stock Mismatch</h3>
+
+                    <p>
+                        Report when the displayed stock information
+                        appears different from the actual information
+                        at the shop.
+                    </p>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    <h3>Incorrect Shop Information</h3>
+
+                    <p>
+                        Report incorrect shop details such as location,
+                        contact information, or other supported details.
+                    </p>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    <h3>Other Information Issue</h3>
+
+                    <p>
+                        Report another supported issue related to
+                        information displayed on GAS-INFO.
+                    </p>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    <h3>Legal / Compliance Concern</h3>
+
+                    <p>
+                        Use the official contact channel for
+                        legal or compliance-related concerns.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- REPORT PROCESS -->
+
+        <section class="contact-section">
+
+            <h2>How Reports Work</h2>
+
+            <p>
+                Reports are intended to help GAS-INFO identify
+                potentially incorrect or problematic information.
+            </p>
+
+            <div class="contact-list">
+
+                <div class="contact-item">
+
+                    <strong>1. Submit a Report</strong>
+
+                    <span>
+                        A logged-in customer can submit a supported
+                        report about relevant information.
+                    </span>
+
+                </div>
+
+                <div class="contact-item">
+
+                    <strong>2. Review</strong>
+
+                    <span>
+                        The report may be reviewed before any action
+                        is taken.
+                    </span>
+
+                </div>
+
+                <div class="contact-item">
+
+                    <strong>3. Trader Verification</strong>
+
+                    <span>
+                        Where appropriate, the trader may be asked
+                        to verify the reported information.
+                    </span>
+
+                </div>
+
+                <div class="contact-item">
+
+                    <strong>4. Resolution</strong>
+
+                    <span>
+                        GAS-INFO may update, correct, moderate,
+                        or otherwise handle the information according
+                        to its applicable rules.
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- LOGIN NOTICE -->
+
+        <section class="contact-section">
+
+            <h2>Login Required for Reports</h2>
+
+            <p>
+                Reporting features that require account tracking
+                will be available to logged-in customers.
+            </p>
+
+            <div class="notice">
+
+                <strong>Why login?</strong>
+
+                <p>
+                    Login helps GAS-INFO associate reports with an
+                    account, reduce misuse, and support the review
+                    and moderation process.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- IMPORTANT -->
+
+        <section class="contact-section">
+
+            <h2>Important Reminder</h2>
+
+            <p>
+                A report does not automatically mean that the
+                reported information is incorrect.
+            </p>
+
+            <p>
+                GAS-INFO may need to review or verify information
+                before taking action.
+            </p>
+
+            <div class="notice">
+
+                <strong>Stock Information</strong>
+
+                <p>
+                    Stock information is provided by the trader and
+                    may change at any time. Please check the latest
+                    information before visiting a shop.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         FOOTER
+         ========================= -->
+
+    <footer class="site-footer">
+
+        <div class="footer-links">
+
+            <a href="about.html">
+                About Us
+            </a>
+
+            <a href="reviews.html">
+                Rate &amp; Reviews
+            </a>
+
+            <a href="updates.html">
+                Updates
+            </a>
+
+            <a href="terms.html">
+                Terms &amp; Penalties
+            </a>
+
+            <a href="legal.html">
+                Legal &amp; Compliance
+            </a>
+
+            <a href="contact.html">
+                Contact / Report
+            </a>
+
+        </div>
+
+        <p class="footer-copy">
+            © 2026 GAS-INFO. Information platform for gas availability.
+        </p>
+
+    </footer>
+
+
+    <!-- =========================
+         JAVASCRIPT
+         ========================= -->
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            /* MOBILE MENU */
+
+            const menuToggle =
+                document.getElementById("menuToggle");
+
+            const mainNav =
+                document.getElementById("mainNav");
+
+            if (menuToggle && mainNav) {
+
+                menuToggle.addEventListener("click", function (event) {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    mainNav.classList.toggle("open");
+
+                    const isOpen =
+                        mainNav.classList.contains("open");
+
+                    menuToggle.setAttribute(
+                        "aria-expanded",
+                        isOpen ? "true" : "false"
+                    );
+
+                });
+
+
+                const navLinks =
+                    mainNav.querySelectorAll("a");
+
+                navLinks.forEach(function (link) {
+
+                    link.addEventListener("click", function () {
+
+                        mainNav.classList.remove("open");
+
+                        menuToggle.setAttribute(
+                            "aria-expanded",
+                            "false"
+                        );
+
+                    });
+
+                });
+
+            }
+
+
+            /* DARK / LIGHT THEME */
+    const themeToggle = document.getElementById("themeToggle");
+
+    if (themeToggle) {
+        const savedTheme = localStorage.getItem("gasInfoTheme");
+
+        if (savedTheme === "light") {
+            document.body.classList.add("light-theme");
+        }
+
+        themeToggle.addEventListener("click", function () {
+            document.body.classList.toggle("light-theme");
+
+            const isLight = document.body.classList.contains("light-theme");
+
+            localStorage.setItem(
+                "gasInfoTheme",
+                isLight ? "light" : "dark"
+            );
+        });
+    }
+
+}); // DOMContentLoaded close
+
+</script>
+</body>
+</html>

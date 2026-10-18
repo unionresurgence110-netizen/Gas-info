@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="GAS-INFO Rate and Reviews">
+
+    <title>Rate & Reviews | GAS-INFO</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0f1115;
+            color: #f1f1f1;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           NAVBAR
+           ========================= */
+
+        .site-header {
+            width: 100%;
+            background: #151821;
+            border-bottom: 1px solid #292d38;
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 1200px;
+            min-height: 82px;
+            margin: 0 auto;
+            padding: 0 32px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            color: #f1f1f1;
+            text-decoration: none;
+            font-size: 32px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: #d8dce5;
+            text-decoration: none;
+            font-size: 16px;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        .theme-toggle {
+            border: 1px solid #292d38;
+            background: transparent;
+            color: #d8dce5;
+            padding: 9px 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .theme-toggle:hover {
+            background: #1d212b;
+        }
+
+        .menu-toggle {
+            display: none;
+
+            border: 1px solid #292d38;
+            background: #151821;
+            color: #f1f1f1;
+
+            width: 58px;
+            height: 58px;
+
+            border-radius: 12px;
+            font-size: 25px;
+            cursor: pointer;
+        }
+
+        /* =========================
+           MAIN
+           ========================= */
+
+        main {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 55px 24px 70px;
+        }
+
+        .page-heading {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        .page-heading h1 {
+            margin: 0 0 12px;
+            font-size: 38px;
+        }
+
+        .page-heading p {
+            max-width: 700px;
+            margin: 0 auto;
+            color: #aeb4c0;
+            font-size: 17px;
+        }
+
+        /* =========================
+           REVIEW SECTIONS
+           ========================= */
+
+        .review-section {
+            background: #151821;
+            border: 1px solid #292d38;
+            border-radius: 14px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .review-section h2 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 25px;
+        }
+
+        .section-description {
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #aeb4c0;
+        }
+
+        /* =========================
+           LOGIN NOTICE
+           ========================= */
+
+        .login-notice {
+            border: 1px solid #292d38;
+            background: #10131a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .login-notice h3 {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .login-notice p {
+            color: #aeb4c0;
+            margin-top: 0;
+        }
+
+        .login-button {
+            display: inline-block;
+            text-decoration: none;
+            background: #f1f1f1;
+            color: #111;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .login-button:hover {
+            opacity: 0.85;
+        }
+
+        /* =========================
+           REVIEW FORM
+           ========================= */
+
+        .review-form {
+            display: none;
+            margin-top: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+
+            background: #0f1115;
+            color: #f1f1f1;
+
+            border: 1px solid #292d38;
+            border-radius: 8px;
+
+            font-size: 15px;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .submit-button {
+            border: none;
+            background: #f1f1f1;
+            color: #111;
+            padding: 11px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .submit-button:hover {
+            opacity: 0.85;
+        }
+
+        /* =========================
+           REVIEW INFO
+           ========================= */
+
+        .review-rules {
+            margin-top: 20px;
+            padding-left: 20px;
+            color: #b8bec9;
+        }
+
+        .review-rules li {
+            margin-bottom: 8px;
+        }
+
+        /* =========================
+           EMPTY REVIEWS
+           ========================= */
+
+        .empty-reviews {
+            text-align: center;
+            padding: 30px 15px;
+            border: 1px dashed #292d38;
+            border-radius: 10px;
+            color: #9da4b0;
+        }
+
+        .empty-reviews strong {
+            display: block;
+            color: #d8dce5;
+            margin-bottom: 6px;
+        }
+
+        /* =========================
+           FOOTER
+           ========================= */
+
+        .site-footer {
+            width: 100%;
+            background: #151821;
+            border-top: 1px solid #292d38;
+
+            padding: 30px 20px;
+            text-align: center;
+
+            overflow: hidden;
+        }
+
+        .footer-links {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+
+            gap: 12px 20px;
+        }
+
+        .footer-links a {
+            color: #aeb4c0;
+            text-decoration: none;
+            white-space: normal;
+        }
+
+        .footer-links a:hover {
+            color: #ffffff;
+        }
+
+        .footer-copy {
+            margin: 18px 0 0;
+            color: #777f8d;
+            font-size: 14px;
+        }
+
+        /* =========================
+           LIGHT THEME
+           ========================= */
+
+        body.light-theme {
+            background: #f5f6f8;
+            color: #171717;
+        }
+
+        body.light-theme .site-header {
+            background: #ffffff;
+            border-bottom-color: #dddddd;
+        }
+
+        body.light-theme .brand {
+            color: #171717;
+        }
+
+        body.light-theme .nav-links a {
+            color: #444444;
+        }
+
+        body.light-theme .nav-links a:hover {
+            color: #171717;
+        }
+
+        body.light-theme .theme-toggle {
+            color: #444444;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .theme-toggle:hover {
+            background: #eeeeee;
+        }
+
+        body.light-theme .menu-toggle {
+            background: #ffffff;
+            color: #171717;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .page-heading p {
+            color: #555555;
+        }
+
+        body.light-theme .review-section {
+            background: #ffffff;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .section-description {
+            color: #555555;
+        }
+
+        body.light-theme .login-notice {
+            background: #f5f6f8;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .login-notice p {
+            color: #555555;
+        }
+
+        body.light-theme .form-group input,
+        body.light-theme .form-group textarea,
+        body.light-theme .form-group select {
+            background: #ffffff;
+            color: #171717;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .review-rules {
+            color: #555555;
+        }
+
+        body.light-theme .empty-reviews {
+            border-color: #cccccc;
+            color: #666666;
+        }
+
+        body.light-theme .empty-reviews strong {
+            color: #333333;
+        }
+
+        body.light-theme .site-footer {
+            background: #ffffff;
+            border-top-color: #dddddd;
+        }
+
+        body.light-theme .footer-links a {
+            color: #444444;
+        }
+
+        body.light-theme .footer-links a:hover {
+            color: #171717;
+        }
+
+        /* =========================
+           MOBILE
+           ========================= */
+
+        @media (max-width: 900px) {
+
+            .navbar {
+                min-height: 110px;
+                padding: 0 32px;
+                position: relative;
+            }
+
+            .menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .nav-links {
+                display: none;
+
+                position: absolute;
+                top: 110px;
+                left: 0;
+
+                width: 100%;
+
+                background: #151821;
+                border-bottom: 1px solid #292d38;
+
+                flex-direction: column;
+                align-items: flex-start;
+
+                padding: 26px 32px;
+                gap: 28px;
+
+                z-index: 1000;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a {
+                font-size: 18px;
+            }
+
+            .theme-toggle {
+                border: none;
+                padding: 0;
+                font-size: 18px;
+                background: transparent;
+            }
+
+            body.light-theme .nav-links {
+                background: #ffffff;
+                border-bottom-color: #dddddd;
+            }
+
+            body.light-theme .theme-toggle {
+                border: none;
+                background: transparent;
+            }
+
+            main {
+                padding: 45px 18px 60px;
+            }
+
+            .page-heading h1 {
+                font-size: 32px;
+            }
+
+            .review-section {
+                padding: 23px 20px;
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .navbar {
+                padding: 0 18px;
+            }
+
+            .brand {
+                font-size: 27px;
+            }
+
+            .menu-toggle {
+                width: 52px;
+                height: 52px;
+            }
+
+            .nav-links {
+                padding-left: 22px;
+                padding-right: 22px;
+            }
+
+            .page-heading h1 {
+                font-size: 29px;
+            }
+
+            .page-heading p {
+                font-size: 15px;
+            }
+
+            .review-section h2 {
+                font-size: 22px;
+            }
+
+            .footer-links {
+                gap: 10px 14px;
+            }
+
+            .site-footer {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- =========================
+         NAVBAR
+         ========================= -->
+
+    <header class="site-header">
+        <nav class="navbar">
+
+            <a href="index.html" class="brand">GAS-INFO</a>
+
+            <button class="menu-toggle"
+                    id="menuToggle"
+                    type="button"
+                    aria-label="Open navigation menu"
+                    aria-controls="mainNav"
+                    aria-expanded="false">
+                ☰
+            </button>
+
+            <div class="nav-links" id="mainNav">
+
+                <a href="index.html">Home</a>
+
+                <a href="index.html#search">
+                    Search / Explore
+                </a>
+
+                <a href="results/all.html">
+                    ALL
+                </a>
+
+                <a href="results/high-rated.html">
+                    HIGH-RATED
+                </a>
+
+                <a href="results/others.html">
+                    OTHERS
+                </a>
+
+                <a href="updates.html">
+                    Updates
+                </a>
+
+                <a href="reviews.html">
+                    Rate &amp; Reviews
+                </a>
+
+                <a href="auth/login.html">
+                    Customer / Trader
+                </a>
+
+                <button id="themeToggle"
+                        type="button"
+                        class="theme-toggle">
+                    ☾ Theme
+                </button>
+
+            </div>
+
+        </nav>
+    </header>
+
+
+    <!-- =========================
+         MAIN CONTENT
+         ========================= -->
+
+    <main>
+
+        <section class="page-heading">
+
+            <h1>Rate &amp; Reviews</h1>
+
+            <p>
+                Share your experience with GAS-INFO and help other
+                customers understand the information available on the platform.
+            </p>
+
+        </section>
+
+
+        <!-- =========================
+             SHOP REVIEWS
+             ========================= -->
+
+        <section class="review-section">
+
+            <h2>Shop Reviews</h2>
+
+            <p class="section-description">
+                Customers can rate and review a gas trader/shop based
+                on their experience with the information provided.
+            </p>
+
+
+            <div class="login-notice">
+
+                <h3>Login required</h3>
+
+                <p>
+                    You need to log in to submit a rating or review.
+                    This helps GAS-INFO maintain a reliable review system.
+                </p>
+
+                <a href="auth/login.html" class="login-button">
+                    Login / Register
+                </a>
+
+            </div>
+
+
+            <ul class="review-rules">
+
+                <li>
+                    A customer can have one active rating/review
+                    for a particular shop.
+                </li>
+
+                <li>
+                    Reviews should describe the customer's genuine
+                    experience or relevant information.
+                </li>
+
+                <li>
+                    Fake, misleading, abusive, or otherwise
+                    inappropriate reviews may be moderated.
+                </li>
+
+                <li>
+                    Shop reviews are separate from GAS-INFO website reviews.
+                </li>
+
+            </ul>
+
+
+            <div class="empty-reviews">
+
+                <strong>No shop reviews to display yet.</strong>
+
+                Shop reviews will appear here when real customer
+                reviews are available.
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             WEBSITE REVIEWS
+             ========================= -->
+
+        <section class="review-section">
+
+            <h2>GAS-INFO Website Reviews</h2>
+
+            <p class="section-description">
+                Tell us about your experience using the GAS-INFO platform.
+            </p>
+
+
+            <div class="login-notice">
+
+                <h3>Login required</h3>
+
+                <p>
+                    Log in to submit your feedback about the GAS-INFO website.
+                </p>
+
+                <a href="auth/login.html" class="login-button">
+                    Login / Register
+                </a>
+
+            </div>
+
+
+            <div class="empty-reviews">
+
+                <strong>No website reviews to display yet.</strong>
+
+                Website reviews will appear here when real user
+                feedback is available.
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             REVIEW INFORMATION
+             ========================= -->
+
+        <section class="review-section">
+
+            <h2>About Ratings &amp; Reviews</h2>
+
+            <p class="section-description">
+                GAS-INFO uses reviews as a way for users to share
+                useful experiences while keeping the platform focused
+                on gas availability information.
+            </p>
+
+            <ul class="review-rules">
+
+                <li>
+                    Ratings and reviews are user-generated information.
+                </li>
+
+                <li>
+                    GAS-INFO does not create or invent customer reviews.
+                </li>
+
+                <li>
+                    Reviews may be moderated when they violate the
+                    platform's rules.
+                </li>
+
+                <li>
+                    Reviews do not guarantee the current availability
+                    of gas at a shop.
+                </li>
+
+                <li>
+                    Stock information is provided by traders and may
+                    change after an update.
+                </li>
+
+            </ul>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         FOOTER
+         ========================= -->
+
+    <footer class="site-footer">
+
+        <div class="footer-links">
+
+            <a href="about.html">
+                About Us
+            </a>
+
+            <a href="reviews.html">
+                Rate &amp; Reviews
+            </a>
+
+            <a href="updates.html">
+                Updates
+            </a>
+
+            <a href="terms.html">
+                Terms &amp; Penalties
+            </a>
+
+            <a href="legal.html">
+                Legal &amp; Compliance
+            </a>
+
+            <a href="contact.html">
+                Contact / Report
+            </a>
+
+        </div>
+
+        <p class="footer-copy">
+            © 2026 GAS-INFO. Information platform for gas availability.
+        </p>
+
+    </footer>
+
+
+    <!-- =========================
+         JAVASCRIPT
+         ========================= -->
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            /* MOBILE MENU */
+
+            const menuToggle =
+                document.getElementById("menuToggle");
+
+            const mainNav =
+                document.getElementById("mainNav");
+
+            if (menuToggle && mainNav) {
+
+                menuToggle.addEventListener("click", function (event) {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    mainNav.classList.toggle("open");
+
+                    const isOpen =
+                        mainNav.classList.contains("open");
+
+                    menuToggle.setAttribute(
+                        "aria-expanded",
+                        isOpen ? "true" : "false"
+                    );
+
+                });
+
+
+                const navLinks =
+                    mainNav.querySelectorAll("a");
+
+                navLinks.forEach(function (link) {
+
+                    link.addEventListener("click", function () {
+
+                        mainNav.classList.remove("open");
+
+                        menuToggle.setAttribute(
+                            "aria-expanded",
+                            "false"
+                        );
+
+                    });
+
+                });
+
+            }
+
+            /* DARK / LIGHT THEME */
+
+const themeToggle = document.getElementById("themeToggle");
+
+if (themeToggle) {
+
+    const savedTheme = localStorage.getItem("gasInfoTheme");
+
+    if (savedTheme === "light") {
+        document.body.classList.add(
+            "light-theme"
+        );
+    }
+
+    themeToggle.addEventListener(
+        "click",
+        function () {
+
+            document.body.classList.toggle(
+                "light-theme"
+            );
+
+            const isLight = document.body.classList.contains(
+                "light-theme"
+            );
+
+            localStorage.setItem(
+                "gasInfoTheme",
+                isLight ? "light" : "dark"
+            );
+        }
+    );
+}
+                                            });
+      
+</script>
+</body>
+</html>
+      
+  

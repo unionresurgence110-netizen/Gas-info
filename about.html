@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>About Us - GAS-INFO</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f1115;
+            color: #f1f1f1;
+            line-height: 1.6;
+        }
+
+        /* ================= NAVBAR ================= */
+
+        .site-header {
+            width: 100%;
+            background: #151821;
+            border-bottom: 1px solid #292d38;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 1200px;
+            margin: auto;
+            min-height: 64px;
+            padding: 10px 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .brand {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 22px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .nav-links a,
+        .theme-toggle {
+            color: #e8e8e8;
+            text-decoration: none;
+            background: transparent;
+            border: none;
+            padding: 8px 10px;
+            border-radius: 7px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover,
+        .theme-toggle:hover {
+            background: #252a35;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            color: #ffffff;
+            border: none;
+            font-size: 25px;
+            cursor: pointer;
+            padding: 5px 8px;
+        }
+
+        /* ================= MAIN ================= */
+
+        main {
+            width: 100%;
+            max-width: 1050px;
+            margin: auto;
+            padding: 35px 18px 50px;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .page-title h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .page-title p {
+            color: #b9bec9;
+            font-size: 16px;
+        }
+
+        .about-section {
+            background: #171a21;
+            border: 1px solid #292d38;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .about-section h2 {
+            font-size: 23px;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .about-section p {
+            color: #c8ccd5;
+            margin-bottom: 10px;
+        }
+
+        .about-section ul {
+            margin-left: 22px;
+            color: #c8ccd5;
+        }
+
+        .about-section li {
+            margin-bottom: 8px;
+        }
+
+        .highlight {
+            border-left: 4px solid #ffffff;
+            padding-left: 16px;
+        }
+
+        /* ================= FOOTER ================= */
+
+        .site-footer {
+            width: 100%;
+            background: #151821;
+            border-top: 1px solid #292d38;
+            padding: 28px 20px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .footer-links {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto 15px;
+
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px 20px;
+        }
+
+        .footer-links a {
+            color: #cfd3dc;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .footer-links a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        .footer-copy {
+            color: #888e9b;
+            font-size: 13px;
+        }
+
+        /* ================= MOBILE ================= */
+
+        @media (max-width: 900px) {
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 64px;
+                left: 0;
+                width: 100%;
+
+                background: #151821;
+                border-bottom: 1px solid #292d38;
+
+                padding: 12px 18px;
+
+                flex-direction: column;
+                align-items: stretch;
+                gap: 4px;
+            }
+
+            /* THIS CLASS OPENS THE MOBILE MENU */
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a,
+            .theme-toggle {
+                width: 100%;
+                text-align: left;
+                padding: 12px;
+            }
+
+            .page-title h1 {
+                font-size: 29px;
+            }
+
+            .about-section {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .navbar {
+                padding: 10px 14px;
+            }
+
+            main {
+                padding: 28px 14px 40px;
+            }
+
+            .page-title h1 {
+                font-size: 27px;
+            }
+
+            .about-section h2 {
+                font-size: 20px;
+            }
+
+            .footer-links {
+                gap: 10px 14px;
+            }
+
+            .site-footer {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+        }
+
+        /* ================= LIGHT THEME ================= */
+
+        body.light-theme {
+            background: #f5f6f8;
+            color: #171717;
+        }
+
+        body.light-theme .site-header,
+        body.light-theme .site-footer {
+            background: #ffffff;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .brand,
+        body.light-theme .nav-links a,
+        body.light-theme .theme-toggle {
+            color: #171717;
+        }
+
+        body.light-theme .nav-links a:hover,
+        body.light-theme .theme-toggle:hover {
+            background: #eeeeee;
+        }
+
+        body.light-theme .about-section {
+            background: #ffffff;
+            border-color: #dddddd;
+        }
+
+        body.light-theme .about-section p,
+        body.light-theme .about-section ul {
+            color: #444444;
+        }
+
+        body.light-theme .page-title p {
+            color: #555555;
+        }
+
+        body.light-theme .footer-links a {
+            color: #444444;
+        }
+
+        @media (max-width: 900px) {
+            body.light-theme .nav-links {
+                background: #ffffff;
+                border-color: #dddddd;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ================= NAVBAR ================= -->
+
+    <header class="site-header">
+        <nav class="navbar">
+
+            <a href="index.html" class="brand">
+                GAS-INFO
+            </a>
+
+            <button
+                class="menu-toggle"
+                id="menuToggle"
+                type="button"
+                aria-label="Open navigation menu"
+                aria-controls="mainNav"
+                aria-expanded="false">
+                ☰
+            </button>
+
+            <div class="nav-links" id="mainNav">
+
+                <a href="index.html">Home</a>
+
+                <a href="index.html#search">
+                    Search / Explore
+                </a>
+
+                <a href="results/all.html">
+                    ALL
+                </a>
+
+                <a href="results/high-rated.html">
+                    HIGH-RATED
+                </a>
+
+                <a href="results/others.html">
+                    OTHERS
+                </a>
+
+                <a href="updates.html">
+                    Updates
+                </a>
+
+                <a href="reviews.html">
+                    Rate &amp; Reviews
+                </a>
+
+                <a href="auth/login.html">
+                    Customer / Trader
+                </a>
+
+                <button
+                    id="themeToggle"
+                    type="button"
+                    class="theme-toggle">
+                    Theme
+                </button>
+
+            </div>
+
+        </nav>
+    </header>
+
+
+    <!-- ================= MAIN CONTENT ================= -->
+
+    <main>
+
+        <div class="page-title">
+            <h1>About GAS-INFO</h1>
+            <p>
+                Connecting customers with trader-provided gas availability information.
+            </p>
+        </div>
+
+
+        <!-- WHAT IS GAS-INFO -->
+
+        <section class="about-section">
+
+            <h2>What is GAS-INFO?</h2>
+
+            <p>
+                GAS-INFO is a Nepal-focused information platform designed to
+                help customers find information about gas cylinder availability
+                reported by gas traders.
+            </p>
+
+            <p>
+                The platform connects customers and traders by making
+                availability information easier to discover.
+            </p>
+
+        </section>
+
+
+        <!-- WHY CREATED -->
+
+        <section class="about-section">
+
+            <h2>Why was GAS-INFO created?</h2>
+
+            <p>
+                Finding a gas cylinder can sometimes be difficult when people
+                do not know which nearby trader may have stock.
+            </p>
+
+            <p>
+                GAS-INFO was created to make this information easier to find
+                through location-based searching and trader-provided stock
+                updates.
+            </p>
+
+        </section>
+
+
+        <!-- PROBLEM -->
+
+        <section class="about-section">
+
+            <h2>The Problem We Are Solving</h2>
+
+            <p>
+                Customers may have to visit or contact multiple shops to find
+                out whether a particular gas cylinder is available.
+            </p>
+
+            <p>
+                GAS-INFO aims to reduce this unnecessary searching by bringing
+                available trader information into one place.
+            </p>
+
+        </section>
+
+
+        <!-- HOW IT WORKS -->
+
+        <section class="about-section">
+
+            <h2>How GAS-INFO Works</h2>
+
+            <ul>
+                <li>
+                    Customers search using location, cylinder and quantity information.
+                </li>
+
+                <li>
+                    Available location choices are based on information present
+                    in the GAS-INFO system.
+                </li>
+
+                <li>
+                    Traders register and provide their shop information.
+                </li>
+
+                <li>
+                    Traders update their own stock information.
+                </li>
+
+                <li>
+                    Search results can consider stock suitability, rating and
+                    freshness of the information.
+                </li>
+            </ul>
+
+        </section>
+
+
+        <!-- CUSTOMERS -->
+
+        <section class="about-section">
+
+            <h2>For Customers</h2>
+
+            <p>
+                Customers can use GAS-INFO to search for trader information
+                without needing to purchase or book gas through the platform.
+            </p>
+
+            <ul>
+                <li>Search for gas availability information.</li>
+                <li>Explore available trader information.</li>
+                <li>View ratings and reviews.</li>
+                <li>Report incorrect information.</li>
+            </ul>
+
+        </section>
+
+
+        <!-- TRADERS -->
+
+        <section class="about-section">
+
+            <h2>For Traders</h2>
+
+            <p>
+                Traders can register and provide information about their shop
+                and available stock.
+            </p>
+
+            <ul>
+                <li>Add shop information.</li>
+                <li>Update cylinder stock.</li>
+                <li>Maintain their stock information.</li>
+                <li>Receive relevant notifications and reports.</li>
+                <li>Manage their trader account.</li>
+            </ul>
+
+        </section>
+
+
+        <!-- DOES NOT DO -->
+
+        <section class="about-section">
+
+            <h2>What GAS-INFO Does NOT Do</h2>
+
+            <div class="highlight">
+
+                <p>
+                    GAS-INFO is an information platform only.
+                </p>
+
+                <ul>
+                    <li>It does not sell gas.</li>
+                    <li>It does not process gas purchases.</li>
+                    <li>It does not provide booking or reservations.</li>
+                    <li>It does not provide gas delivery.</li>
+                    <li>It does not process payments.</li>
+                </ul>
+
+            </div>
+
+        </section>
+
+
+        <!-- INFORMATION ACCURACY -->
+
+        <section class="about-section">
+
+            <h2>Information Accuracy</h2>
+
+            <p>
+                Stock and shop information is provided by traders and may
+                change at any time.
+            </p>
+
+            <p>
+                GAS-INFO provides tools for reporting incorrect information,
+                but trader-provided information should not automatically be
+                considered verified.
+            </p>
+
+        </section>
+
+
+        <!-- STOCK DISCLAIMER -->
+
+        <section class="about-section">
+
+            <h2>Stock Availability Disclaimer</h2>
+
+            <p>
+                Stock information is provided by the trader and may change at
+                any time. Please check the latest information before visiting
+                a shop.
+            </p>
+
+        </section>
+
+
+        <!-- LIMITATION -->
+
+        <section class="about-section">
+
+            <h2>Limitation of Responsibility</h2>
+
+            <p>
+                GAS-INFO is not responsible for transactions, delivery, gas
+                quality, price, fraud, or other losses resulting from
+                interactions between customers and traders.
+            </p>
+
+        </section>
+
+
+        <!-- TRUST -->
+
+        <section class="about-section">
+
+            <h2>Trust &amp; Transparency</h2>
+
+            <p>
+                GAS-INFO aims to maintain transparency by showing information
+                about stock freshness, ratings, reviews and reporting systems.
+            </p>
+
+            <p>
+                Information that violates the platform rules may be reviewed
+                and removed according to the applicable moderation process.
+            </p>
+
+        </section>
+
+
+        <!-- FUTURE -->
+
+        <section class="about-section">
+
+            <h2>Future Vision</h2>
+
+            <p>
+                GAS-INFO aims to improve the way customers discover gas
+                availability information across Nepal while giving traders
+                useful tools to maintain accurate information.
+            </p>
+
+        </section>
+
+
+        <!-- DISCLAIMER -->
+
+        <section class="about-section">
+
+            <h2>Disclaimer</h2>
+
+            <p>
+                GAS-INFO provides information based on data submitted through
+                the platform. Availability information may become outdated
+                after a trader's update.
+            </p>
+
+            <p>
+                Users should verify the latest information before visiting a
+                trader. GAS-INFO does not guarantee that reported stock will
+                remain available.
+            </p>
+
+        </section>
+
+    </main>
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer class="site-footer">
+
+        <div class="footer-links">
+
+            <a href="about.html">About Us</a>
+
+            <a href="reviews.html">
+                Rate &amp; Reviews
+            </a>
+
+            <a href="updates.html">
+                Updates
+            </a>
+
+            <a href="terms.html">
+                Terms &amp; Penalties
+            </a>
+
+            <a href="legal.html">
+                Legal &amp; Compliance
+            </a>
+
+            <a href="contact.html">
+                Contact / Report
+            </a>
+
+        </div>
+
+        <p class="footer-copy">
+            © 2026 GAS-INFO. Information platform only.
+        </p>
+
+    </footer>
+
+
+    <!-- ================= JAVASCRIPT ================= -->
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            /* MOBILE MENU */
+
+            const menuToggle = document.getElementById("menuToggle");
+            const mainNav = document.getElementById("mainNav");
+
+            if (menuToggle && mainNav) {
+
+                menuToggle.addEventListener("click", function (event) {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    mainNav.classList.toggle("open");
+
+                    const isOpen =
+                        mainNav.classList.contains("open");
+
+                    menuToggle.setAttribute(
+                        "aria-expanded",
+                        isOpen ? "true" : "false"
+                    );
+
+                });
+
+
+                /* Close menu after clicking a link */
+
+                const navLinks =
+                    mainNav.querySelectorAll("a");
+
+                navLinks.forEach(function (link) {
+
+                    link.addEventListener("click", function () {
+
+                        mainNav.classList.remove("open");
+
+                        menuToggle.setAttribute(
+                            "aria-expanded",
+                            "false"
+                        );
+
+                    });
+
+                });
+
+            }
+
+
+            /* THEME TOGGLE */
+
+            const themeToggle =
+                document.getElementById("themeToggle");
+
+            if (themeToggle) {
+
+                const savedTheme =
+                    localStorage.getItem("gasInfoTheme");
+
+                if (savedTheme === "light") {
+                    document.body.classList.add("light-theme");
+                }
+
+                themeToggle.addEventListener(
+                    "click",
+                    function () {
+
+                        document.body.classList.toggle(
+                            "light-theme"
+                        );
+
+                        const isLight =
+                            document.body.classList.contains(
+                                "light-theme"
+                            );
+
+                        localStorage.setItem(
+                            "gasInfoTheme",
+                            isLight ? "light" : "dark"
+                        );
+
+                    }
+                );
+
+            }
+
+        });
+    </script>
+
+</body>
+</html>
