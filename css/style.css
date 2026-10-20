@@ -18,3 +18,16 @@ footer{margin-top:45px;background:#161b22;border-top:1px solid #30363d}.footer-i
 @media(max-width:760px){.nav-links{display:none}.menu-btn{display:block}.mobile-menu.open{display:block}.grid,.footer-inner{grid-template-columns:1fr}.hero{padding:25px;min-height:280px}}
 
 body.light{background:#f6f8fa;color:#24292f}body.light .navbar,body.light .card,body.light .search-card,body.light .result-card,body.light footer{background:#fff;border-color:#d0d7de}body.light input,body.light select,body.light textarea,body.light .search-bar{background:#fff;color:#24292f;border-color:#d0d7de}body.light .muted,body.light .hero p{color:#57606a}
+
+/* GAS-INFO default shop image placeholder; respects the current theme. */
+.gas-placeholder{width:100%;max-width:220px;height:116px;margin:0 0 14px;border:1px solid #22d3ee;border-radius:12px;background:linear-gradient(135deg,#0b1924,#111827);display:flex;align-items:center;justify-content:center;gap:13px;color:#67e8f9;font-weight:800;letter-spacing:2px;overflow:hidden}
+.gas-placeholder .cylinder{position:relative;width:36px;height:67px;border:3px solid currentColor;border-radius:8px 8px 10px 10px;background:linear-gradient(90deg,transparent 0 25%,#22d3ee22 25% 75%,transparent 75%)}
+.gas-placeholder .cylinder:before{content:"";position:absolute;top:-9px;left:9px;width:12px;height:7px;border:2px solid currentColor;border-bottom:0;border-radius:4px 4px 0 0}
+.gas-placeholder .cylinder:after{content:"";position:absolute;top:23px;left:0;right:0;border-top:2px solid currentColor;opacity:.7}
+.gas-placeholder .placeholder-label{font-size:.9rem;line-height:1.15}
+body.light .gas-placeholder{background:linear-gradient(135deg,#f8fafc,#e2e8f0);color:#075985;border-color:#0284c7}
+body.light .gas-placeholder .cylinder{background:linear-gradient(90deg,transparent 0 25%,#0284c722 25% 75%,transparent 75%)}
+.shop-map-link{display:inline-block;margin:4px 0 10px;color:#67e8f9;text-decoration:underline}
+body.light .shop-map-link{color:#075985}
+.stock-history{margin-top:10px}
+@media(max-width:480px){.gas-placeholder{max-width:none;height:100px}.gas-placeholder .cylinder{transform:scale(.88)}}
