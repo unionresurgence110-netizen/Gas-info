@@ -90,42 +90,42 @@
       <div class="grid">
         <div>
           <label>Province</label>
-          <select><option>Select Province</option></select>
+          <select id="province"><option value="">Select Province</option></select>
         </div>
 
         <div>
           <label>District</label>
-          <select><option>Select District</option></select>
+          <select id="district"><option value="">Select District</option></select>
         </div>
 
         <div>
           <label>Municipality</label>
-          <select><option>Select Municipality</option></select>
+          <select id="municipality"><option value="">Select Municipality</option></select>
         </div>
 
         <div>
           <label>Ward No.</label>
-          <select><option>Select Ward</option></select>
+          <select id="ward"><option value="">Select Ward</option></select>
         </div>
 
         <div>
           <label>Town / Village</label>
-          <input placeholder="Enter town / village">
+          <input id="town" placeholder="Enter town / village">
         </div>
 
         <div>
           <label>Exact Location</label>
-          <input placeholder="Enter exact location">
+          <input id="location" placeholder="Enter exact location">
         </div>
 
         <div>
           <label>Gas / Cylinder Name</label>
-          <input placeholder="Cylinder name">
+          <input id="cylinder" placeholder="Cylinder name">
         </div>
 
         <div>
           <label>Quantity</label>
-          <input type="number" min="1" placeholder="Quantity">
+          <input id="quantity" type="number" min="1" placeholder="Quantity">
         </div>
       </div>
 
@@ -223,5 +223,158 @@ document.addEventListener("DOMContentLoaded", function(){
   `;
 });
 </script>
+  
+<script>
+const API = "https://gas-info-api.onrender.com";
+const $ = id => document.getElementById(id);
+
+const province = $("province");
+const district = $("district");
+const municipality = $("municipality");
+const ward = $("ward");
+const form = $("search-form");
+const results = $("results");
+
+let locationRows = [];
+
+function safe(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;",
+    '"': "&quot;", "'": "&#39;"
+  })[c]);
+}
+
+function fill(select, values, label) {
+  const old = select.value;
+  const unique = [...new Set(values.filter(v => v != null && v !== ""))]
+    .sort((a,b) => String(a).localeCompare(String(b)));
+
+  select.innerHTML =
+    `<option value="">${label}</option>` +
+    unique.map(v =>
+      `<option value="${safe(v)}">${safe(v)}</option>`
+    ).join("");
+
+  if (unique.some(v => String(v) === old)) select.value = old;
+}
+
+function updateLocations() {
+  const p = province.value;
+  const d = district.value;
+  const m = municipality.value;
+
+  fill(district, locationRows
+    .filter(x => !p || x.province === p)
+    .map(x => x.district), "Select District");
+
+  fill(municipality, locationRows
+    .filter(x => (!p || x.province === p) &&
+                 (!d || x.district === d))
+    .map(x => x.municipality), "Select Municipality");
+
+  fill(ward, locationRows
+    .filter(x => (!p || x.province === p) &&
+                 (!d || x.district === d) &&
+                 (!m || x.municipality === m))
+    .map(x => x.ward_no == null ? "" : String(x.ward_no)),
+    "Select Ward");
+}
+
+province.addEventListener("change", () => {
+  district.value = "";
+  municipality.value = "";
+  ward.value = "";
+  updateLocations();
+});
+
+district.addEventListener("change", () => {
+  municipality.value = "";
+  ward.value = "";
+  updateLocations();
+});
+
+municipality.addEventListener("change", () => {
+  ward.value = "";
+  updateLocations();
+});
+
+async function loadLocations() {
+  try {
+    const response = await fetch(`${API}/api/locations`);
+    if (!response.ok) throw new Error("Location API error");
+
+    const data = await response.json();
+    locationRows = data.locations || [];
+
+    fill(province, locationRows.map(x => x.province),
+         "Select Province");
+    updateLocations();
+  } catch (error) {
+    console.error("Location loading failed:", error);
+  }
+}
+
+form.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  results.style.display = "block";
+  results.innerHTML = "<h2>Results</h2><p>Searching...</p>";
+
+  const params = new URLSearchParams({
+    province: province.value,
+    district: district.value,
+    municipality: municipality.value,
+    ward: ward.value,
+    town: $("town").value.trim(),
+    location: $("location").value.trim(),
+    cylinder: $("cylinder").value.trim(),
+    quantity: $("quantity").value || "1"
+  });
+
+  try {
+    const response = await fetch(`${API}/api/search?${params}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Search failed");
+    }
+
+    const shops = data.results || [];
+
+    results.innerHTML = `
+      <h2 class="section-title">Results (${shops.length})</h2>
+      <div class="tabs">
+        <a href="results/all.html">ALL</a>
+        <a href="results/high-rated.html">HIGH-RATED</a>
+        <a href="results/others.html">OTHERS</a>
+      </div>
+      ${shops.length ? shops.map(s => `
+        <article class="card">
+          <h3>${safe(s.shop_name)}</h3>
+          <p>Location: ${safe([
+            s.province, s.district, s.municipality,
+            s.ward_no, s.town_village, s.exact_location
+          ].filter(Boolean).join(", "))}</p>
+          <p>Cylinder: ${safe(s.cylinder_name)}</p>
+          <p>Available quantity: ${safe(s.quantity)}</p>
+          <p>Rating: ${safe(s.rating)} / 5
+             (${safe(s.review_count)} reviews)</p>
+          <p>Last updated: ${safe(s.last_updated_at
+            ? new Date(s.last_updated_at).toLocaleString()
+            : "Unknown")}</p>
+          ${s.phone ? `<p>Phone: ${safe(s.phone)}</p>` : ""}
+        </article>
+      `).join("") : "<p>No matching shops found.</p>"}
+      <p class="muted">${safe(data.disclaimer || "")}</p>
+    `;
+  } catch (error) {
+    results.innerHTML =
+      `<h2>Search error</h2><p>${safe(error.message)}</p>`;
+  }
+});
+
+loadLocations();
+    </script>
+  
 </body>
 </html>
