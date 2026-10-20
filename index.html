@@ -6,25 +6,20 @@
 <title>GAS-INFO | Home</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
-/* INDEX-ONLY FIXES */
+/* INDEX-ONLY FIXES — existing design preserved */
 .hero-banner{
   position:relative;
   padding:0;
   overflow:hidden;
   width:100%;
 }
-
 .hero-banner img{
   display:block;
   width:100%;
   height:auto;
   object-fit:contain;
 }
-
-.hero-banner .hero-overlay{
-  display:none;
-}
-
+.hero-banner .hero-overlay{display:none;}
 .index-nav-extra{
   display:flex;
   gap:14px;
@@ -37,39 +32,13 @@
 <header class="navbar">
   <div class="nav-inner">
     <a class="brand" href="index.html">GAS-INFO</a>
-
-    <!-- Navbar: ONLY navigation items -->
-    <nav id="nav-links" class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="index.html#search">Search / Explore</a>
-      <a href="results/all.html">ALL</a>
-      <a href="results/high-rated.html">HIGH-RATED</a>
-      <a href="results/others.html">OTHERS</a>
-      <a href="updates.html">Updates</a>
-      <a href="reviews.html">Rate &amp; Reviews</a>
-      <a href="auth/login.html">Customer / Trader</a>
-      <button class="nav-btn" onclick="toggleTheme()">☾ Theme</button>
-    </nav>
-
+    <nav id="nav-links" class="nav-links"></nav>
     <button class="menu-btn" onclick="toggleMenu()">☰</button>
   </div>
-
-  <div id="mobile-menu" class="mobile-menu">
-    <a href="index.html">Home</a>
-    <a href="index.html#search">Search / Explore</a>
-    <a href="results/all.html">ALL</a>
-    <a href="results/high-rated.html">HIGH-RATED</a>
-    <a href="results/others.html">OTHERS</a>
-    <a href="updates.html">Updates</a>
-    <a href="reviews.html">Rate &amp; Reviews</a>
-    <a href="auth/login.html">Customer / Trader</a>
-    <a href="#" onclick="toggleTheme();return false">☾ Theme</a>
-  </div>
+  <div id="mobile-menu" class="mobile-menu"></div>
 </header>
 
 <main class="container">
-
-  <!-- Banner: no extra text placed over the generated banner -->
   <section class="hero hero-banner">
     <img src="public/image/banner.png"
          alt="GAS-INFO gas availability banner">
@@ -80,56 +49,72 @@
 
     <input id="search-input"
            class="search-bar"
+           type="text"
            onclick="openSearch()"
-           placeholder="Click to enter location, cylinder and quantity">
+           onfocus="openSearch()"
+           placeholder="Click to enter location, cylinder and quantity"
+           autocomplete="off">
 
-    <form id="search-form"
-          class="search-form">
-
+    <form id="search-form" class="search-form">
       <div class="grid">
         <div>
-          <label>Province</label>
-          <select id="province"><option value="">Select Province</option></select>
+          <label for="province">Province</label>
+          <input id="province" name="province" list="province-options"
+                 placeholder="Type province" autocomplete="off">
+          <datalist id="province-options"></datalist>
         </div>
 
         <div>
-          <label>District</label>
-          <select id="district"><option value="">Select District</option></select>
+          <label for="district">District</label>
+          <input id="district" name="district" list="district-options"
+                 placeholder="Type district" autocomplete="off">
+          <datalist id="district-options"></datalist>
         </div>
 
         <div>
-          <label>Municipality</label>
-          <select id="municipality"><option value="">Select Municipality</option></select>
+          <label for="municipality">Municipality</label>
+          <input id="municipality" name="municipality"
+                 list="municipality-options"
+                 placeholder="Type municipality" autocomplete="off">
+          <datalist id="municipality-options"></datalist>
         </div>
 
         <div>
-          <label>Ward No.</label>
-          <select id="ward"><option value="">Select Ward</option></select>
+          <label for="ward">Ward No.</label>
+          <input id="ward" name="ward" list="ward-options"
+                 placeholder="Type ward number" autocomplete="off">
+          <datalist id="ward-options"></datalist>
         </div>
 
         <div>
-          <label>Town / Village</label>
-          <input id="town" placeholder="Enter town / village">
+          <label for="town">Town / Village</label>
+          <input id="town" name="town"
+                 placeholder="Enter town / village">
         </div>
 
         <div>
-          <label>Exact Location</label>
-          <input id="location" placeholder="Enter exact location">
+          <label for="location">Exact Location</label>
+          <input id="location" name="location"
+                 placeholder="Enter exact location">
         </div>
 
         <div>
-          <label>Gas / Cylinder Name</label>
-          <input id="cylinder" placeholder="Cylinder name">
+          <label for="cylinder">Gas / Cylinder Name</label>
+          <input id="cylinder" name="cylinder"
+                 placeholder="Cylinder name">
         </div>
 
         <div>
-          <label>Quantity</label>
-          <input id="quantity" type="number" min="1" value="1" placeholder="Quantity">
+          <label for="quantity">Quantity</label>
+          <input id="quantity" name="quantity" type="number"
+                 min="1" value="1" placeholder="Quantity">
         </div>
       </div>
 
       <button class="btn" type="submit">Search</button>
-      <button class="btn secondary" type="button" onclick="closeSearch()">Close</button>
+      <button class="btn secondary" type="button"
+              onclick="closeSearch()">Close</button>
+      <p id="location-note" class="muted" aria-live="polite"></p>
     </form>
   </section>
 
@@ -140,9 +125,8 @@
       <a href="results/high-rated.html">HIGH-RATED</a>
       <a href="results/others.html">OTHERS</a>
     </div>
-    <div class="notice">
-      No live shop data is connected yet. Results will appear after the database/search phase.
-    </div>
+    <p id="search-summary" class="muted" aria-live="polite"></p>
+    <div id="results-list"></div>
   </section>
 
   <section class="card">
@@ -160,7 +144,6 @@
       Please check the latest information before visiting the shop.
     </p>
   </section>
-
 </main>
 
 <footer>
@@ -190,190 +173,6 @@
 </footer>
 
 <script src="js/script.js"></script>
-<script>
-/* Keep ALL / HIGH-RATED / OTHERS visible in the index navbar,
-   even if the older shared script.js has an older NAV list. */
-document.addEventListener("DOMContentLoaded", function(){
-  const nav = document.getElementById("nav-links");
-  const mobile = document.getElementById("mobile-menu");
-
-  nav.innerHTML = `
-    <a href="index.html">Home</a>
-    <a href="index.html#search">Search / Explore</a>
-    <a href="results/all.html">ALL</a>
-    <a href="results/high-rated.html">HIGH-RATED</a>
-    <a href="results/others.html">OTHERS</a>
-    <a href="updates.html">Updates</a>
-    <a href="reviews.html">Rate &amp; Reviews</a>
-    <a href="auth/login.html">Customer / Trader</a>
-    <button class="nav-btn" onclick="toggleTheme()">☾ Theme</button>
-  `;
-
-  mobile.innerHTML = `
-    <a href="index.html">Home</a>
-    <a href="index.html#search">Search / Explore</a>
-    <a href="results/all.html">ALL</a>
-    <a href="results/high-rated.html">HIGH-RATED</a>
-    <a href="results/others.html">OTHERS</a>
-    <a href="updates.html">Updates</a>
-    <a href="reviews.html">Rate &amp; Reviews</a>
-    <a href="auth/login.html">Customer / Trader</a>
-    <a href="#" onclick="toggleTheme();return false">☾ Theme</a>
-  `;
-});
-</script>
-  
-<script>
-const API = "https://gas-info-api.onrender.com";
-const $ = id => document.getElementById(id);
-
-const province = $("province");
-const district = $("district");
-const municipality = $("municipality");
-const ward = $("ward");
-const form = $("search-form");
-const results = $("results");
-
-let locationRows = [];
-
-function safe(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;",
-    '"': "&quot;", "'": "&#39;"
-  })[c]);
-}
-
-function fill(select, values, label) {
-  const old = select.value;
-  const unique = [...new Set(values.filter(v => v != null && v !== ""))]
-    .sort((a,b) => String(a).localeCompare(String(b)));
-
-  select.innerHTML =
-    `<option value="">${label}</option>` +
-    unique.map(v =>
-      `<option value="${safe(v)}">${safe(v)}</option>`
-    ).join("");
-
-  if (unique.some(v => String(v) === old)) select.value = old;
-}
-
-function updateLocations() {
-  const p = province.value;
-  const d = district.value;
-  const m = municipality.value;
-
-  fill(district, locationRows
-    .filter(x => !p || x.province === p)
-    .map(x => x.district), "Select District");
-
-  fill(municipality, locationRows
-    .filter(x => (!p || x.province === p) &&
-                 (!d || x.district === d))
-    .map(x => x.municipality), "Select Municipality");
-
-  fill(ward, locationRows
-    .filter(x => (!p || x.province === p) &&
-                 (!d || x.district === d) &&
-                 (!m || x.municipality === m))
-    .map(x => x.ward_no == null ? "" : String(x.ward_no)),
-    "Select Ward");
-}
-
-province.addEventListener("change", () => {
-  district.value = "";
-  municipality.value = "";
-  ward.value = "";
-  updateLocations();
-});
-
-district.addEventListener("change", () => {
-  municipality.value = "";
-  ward.value = "";
-  updateLocations();
-});
-
-municipality.addEventListener("change", () => {
-  ward.value = "";
-  updateLocations();
-});
-
-async function loadLocations() {
-  try {
-    const response = await fetch(`${API}/api/locations`);
-    if (!response.ok) throw new Error("Location API error");
-
-    const data = await response.json();
-    locationRows = data.locations || [];
-
-    fill(province, locationRows.map(x => x.province),
-         "Select Province");
-    updateLocations();
-  } catch (error) {
-    console.error("Location loading failed:", error);
-  }
-}
-
-form.addEventListener("submit", async event => {
-  event.preventDefault();
-
-  results.style.display = "block";
-  results.innerHTML = "<h2>Results</h2><p>Searching...</p>";
-
-  const params = new URLSearchParams({
-    province: province.value,
-    district: district.value,
-    municipality: municipality.value,
-    ward: ward.value,
-    town: $("town").value.trim(),
-    location: $("location").value.trim(),
-    cylinder: $("cylinder").value.trim(),
-    quantity: $("quantity").value || "1"
-  });
-
-  try {
-    const response = await fetch(`${API}/api/search?${params}`);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Search failed");
-    }
-
-    const shops = data.results || [];
-
-    results.innerHTML = `
-      <h2 class="section-title">Results (${shops.length})</h2>
-      <div class="tabs">
-        <a href="results/all.html">ALL</a>
-        <a href="results/high-rated.html">HIGH-RATED</a>
-        <a href="results/others.html">OTHERS</a>
-      </div>
-      ${shops.length ? shops.map(s => `
-        <article class="card">
-          <h3>${safe(s.shop_name)}</h3>
-          <p>Location: ${safe([
-            s.province, s.district, s.municipality,
-            s.ward_no, s.town_village, s.exact_location
-          ].filter(Boolean).join(", "))}</p>
-          <p>Cylinder: ${safe(s.cylinder_name)}</p>
-          <p>Available quantity: ${safe(s.quantity)}</p>
-          <p>Rating: ${safe(s.rating)} / 5
-             (${safe(s.review_count)} reviews)</p>
-          <p>Last updated: ${safe(s.last_updated_at
-            ? new Date(s.last_updated_at).toLocaleString()
-            : "Unknown")}</p>
-          ${s.phone ? `<p>Phone: ${safe(s.phone)}</p>` : ""}
-        </article>
-      `).join("") : "<p>No matching shops found.</p>"}
-      <p class="muted">${safe(data.disclaimer || "")}</p>
-    `;
-  } catch (error) {
-    results.innerHTML =
-      `<h2>Search error</h2><p>${safe(error.message)}</p>`;
-  }
-});
-
-loadLocations();
-    </script>
-  
+<script src="js/public-api.js"></script>
 </body>
 </html>
