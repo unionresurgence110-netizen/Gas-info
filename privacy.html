@@ -4,67 +4,311 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101820">
+
   <title>Privacy Policy | GAS-INFO</title>
+  <meta name="description"
+        content="Learn how GAS-INFO handles information submitted through its gas availability platform.">
+
   <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* Privacy page styling — matching the existing homepage */
+    .privacy-hero {
+      padding: 34px 24px;
+      margin: 24px 0;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #123b38, #172b3c);
+      color: #fff;
+    }
+
+    .privacy-hero .privacy-label {
+      display: inline-block;
+      padding: 7px 12px;
+      margin-bottom: 12px;
+      border-radius: 30px;
+      background: rgba(255,255,255,.12);
+      font-size: .85rem;
+    }
+
+    .privacy-hero h1 {
+      margin: 0 0 12px;
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+    }
+
+    .privacy-hero p {
+      max-width: 700px;
+      line-height: 1.7;
+      margin-bottom: 0;
+    }
+
+    .privacy-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin: 24px 0;
+    }
+
+    .privacy-card {
+      padding: 22px;
+      border-radius: 16px;
+      min-width: 0;
+    }
+
+    .privacy-card h2 {
+      font-size: 1.15rem;
+      margin: 0 0 12px;
+    }
+
+    .privacy-card p {
+      line-height: 1.75;
+      margin-bottom: 0;
+    }
+
+    .privacy-card p + p {
+      margin-top: 12px;
+    }
+
+    .privacy-icon {
+      font-size: 1.6rem;
+      margin-bottom: 10px;
+    }
+
+    .privacy-note {
+      padding: 18px;
+      border-radius: 14px;
+      margin: 24px 0;
+      line-height: 1.7;
+    }
+
+    .privacy-contact {
+      padding: 24px;
+      border-radius: 16px;
+      margin: 24px 0;
+      text-align: center;
+    }
+
+    .privacy-contact h2 {
+      margin-top: 0;
+    }
+
+    .privacy-contact a {
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 650px) {
+      .privacy-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .privacy-hero {
+        padding: 26px 20px;
+      }
+
+      .privacy-card {
+        padding: 19px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <header id="site-header" class="site-header"></header>
 
-  <main>
-    <section class="page-title">
-      <div class="container">
-        <div class="kicker">Privacy</div>
-        <h1>Privacy Policy</h1>
-        <p class="section-intro">
-          Learn how GAS-INFO handles information on its platform.
-        </p>
+  <!-- Same navbar structure as the homepage -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">GAS-INFO</a>
+      <nav id="nav-links" class="nav-links"></nav>
+      <button class="menu-btn" onclick="toggleMenu()"
+              aria-label="Toggle navigation">☰</button>
+    </div>
+    <div id="mobile-menu" class="mobile-menu"></div>
+  </header>
+
+  <main class="container">
+
+    <!-- Page introduction -->
+    <section class="privacy-hero">
+      <span class="privacy-label">🔒 Privacy &amp; Trust</span>
+      <h1>Privacy Policy</h1>
+      <p>
+        Your information matters. This page explains how information
+        submitted through GAS-INFO may be used when you explore gas
+        cylinder availability and use platform features.
+      </p>
+    </section>
+
+    <!-- Privacy information -->
+    <section>
+      <h2 class="section-title">🛡️ Your Privacy Matters</h2>
+
+      <div class="privacy-grid">
+
+        <article class="card privacy-card">
+          <div class="privacy-icon">📋</div>
+          <h2>1. Information and Platform Use</h2>
+          <p>
+            Depending on the features you use, information may be submitted
+            through searches, account forms, reviews, ratings or reports.
+          </p>
+          <p>
+            This information may be used to provide platform features and
+            help maintain the service. The actual information collected
+            depends on the features implemented.
+          </p>
+        </article>
+
+        <article class="card privacy-card">
+          <div class="privacy-icon">👤</div>
+          <h2>2. Account Information</h2>
+          <p>
+            If you create an account, the information requested in the
+            registration form may be used to provide account-related
+            functionality.
+          </p>
+          <p>
+            Please avoid submitting unnecessary personal information.
+          </p>
+        </article>
+
+        <article class="card privacy-card">
+          <div class="privacy-icon">📍</div>
+          <h2>3. Location and Search</h2>
+          <p>
+            You may enter location details such as province, district,
+            municipality, ward or a more specific location to search
+            for gas cylinder availability.
+          </p>
+          <p>
+            Search information helps identify relevant trader-provided
+            availability information.
+          </p>
+        </article>
+
+        <article class="card privacy-card">
+          <div class="privacy-icon">⭐</div>
+          <h2>4. Reviews, Ratings and Reports</h2>
+          <p>
+            Reviews, ratings and reports submitted by users may be
+            processed to display feedback, investigate reported issues
+            and help maintain the reliability of platform information.
+          </p>
+        </article>
+
+        <article class="card privacy-card">
+          <div class="privacy-icon">🏪</div>
+          <h2>5. Trader and Stock Information</h2>
+          <p>
+            Gas availability information is provided by traders and may
+            change at any time. GAS-INFO is an information platform and
+            does not itself sell gas cylinders.
+          </p>
+          <p>
+            Please verify availability directly with the relevant trader
+            before visiting.
+          </p>
+        </article>
+
+        <article class="card privacy-card">
+          <div class="privacy-icon">🔐</div>
+          <h2>6. Data Protection</h2>
+          <p>
+            Information should be handled responsibly and protected
+            against unauthorized access. The specific security measures,
+            storage arrangements and retention periods must reflect
+            the platform's actual implementation.
+          </p>
+        </article>
+
       </div>
     </section>
 
-    <section class="section">
-      <div class="container prose">
-        <p>
-          GAS-INFO is an information platform that helps customers discover
-          trader-provided gas cylinder availability information. GAS-INFO
-          does not itself sell gas cylinders or guarantee stock availability.
-        </p>
-
-        <h2>Information and Platform Use</h2>
-        <p>
-          Information submitted through searches, reviews, ratings, reports,
-          or account forms may be used to provide and maintain platform
-          features. The exact information collected depends on the features
-          you use.
-        </p>
-
-        <h2>Accuracy of Stock Information</h2>
-        <p>
-          Stock information is provided by traders and may change at any time.
-          Users should verify availability directly with the relevant trader.
-        </p>
-
-        <h2>Reviews and Reports</h2>
-        <p>
-          Reviews, ratings, and reports may be processed to help maintain
-          the reliability of platform information and address reported issues.
-        </p>
-
-        <h2>Questions About Privacy</h2>
-        <p>
-          Please use the GAS-INFO contact page for privacy-related questions.
-        </p>
-
-        <div class="notice warning">
-          This policy is a draft and must be reviewed against the actual
-          data collected, storage practices, account controls, and applicable
-          legal requirements before launch.
-        </div>
-      </div>
+    <section class="card privacy-card">
+      <div class="privacy-icon">📝</div>
+      <h2>7. Information Retention and Your Choices</h2>
+      <p>
+        How long information is retained, how users can request access
+        or deletion, and what account controls are available depend on
+        the platform's actual policies and technical capabilities.
+      </p>
+      <p>
+        These practices should be clearly documented before the
+        platform launches publicly.
+      </p>
     </section>
+
+    <section class="card privacy-card" style="margin-top: 20px;">
+      <div class="privacy-icon">🔄</div>
+      <h2>8. Policy Updates</h2>
+      <p>
+        This page may be updated when GAS-INFO features or information
+        handling practices change. The published policy should accurately
+        describe the practices in effect.
+      </p>
+    </section>
+
+    <section class="privacy-contact card">
+      <div class="privacy-icon">💬</div>
+      <h2>Questions About Privacy?</h2>
+      <p>
+        If you have questions about privacy or information handling,
+        please contact the GAS-INFO team.
+      </p>
+      <p>
+        📧
+        <a href="mailto:unionresurgence110@gmail.com?subject=GAS-INFO%20Privacy%20Question">
+          unionresurgence110@gmail.com
+        </a>
+      </p>
+      <p>
+        <a href="contact.html">Visit Contact / Report →</a>
+      </p>
+    </section>
+
+    <div class="privacy-note notice warning">
+      <strong>⚠️ Important:</strong>
+      This is a draft policy. Before public launch, verify it against
+      the actual data collected, backend storage, security measures,
+      account deletion options and applicable legal requirements.
+    </div>
+
+    <p class="muted" style="text-align: center; padding: 10px 0 25px;">
+      GAS-INFO · Privacy &amp; Transparency 🔒
+    </p>
+
   </main>
 
-  <footer id="site-footer" class="footer"></footer>
+  <!-- Same footer structure as the homepage -->
+  <footer>
+    <div class="footer-inner">
 
-  <script src="js/app.js"></script>
+      <div>
+        <h3>GAS-INFO</h3>
+        <p class="muted">
+          Gas cylinder availability information platform.
+          Information is provided by traders and may change at any time.
+        </p>
+      </div>
+
+      <div class="footer-links">
+        <h3>Information</h3>
+        <a href="about.html">About Us</a>
+        <a href="reviews.html">Rate &amp; Reviews</a>
+        <a href="updates.html">Updates</a>
+      </div>
+
+      <div class="footer-links">
+        <h3>Legal</h3>
+        <a href="terms.html">Terms &amp; Penalties</a>
+        <a href="legal.html">Legal &amp; Compliance</a>
+        <a href="privacy.html">🔒 Privacy Policy</a>
+        <a href="contact.html">Contact / Report</a>
+      </div>
+
+    </div>
+  </footer>
+
+  <script src="js/script.js"></script>
 </body>
-</html>
+          </html>
+          
