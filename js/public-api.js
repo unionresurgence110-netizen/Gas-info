@@ -103,14 +103,235 @@
     `;
   }
 
+  // Create the report popup when it is first needed.
+  function ensureReportModal() {
+    let modal = $("gas-report-modal");
+    if (modal) return modal;
+
+    modal = document.createElement("div");
+    modal.id = "gas-report-modal";
+    modal.className = "report-modal";
+    modal.setAttribute("aria-hidden", "true");
+
+    modal.innerHTML = `
+      <section class="report-dialog" role="dialog" aria-modal="true"
+               aria-labelledby="report-modal-title">
+
+        <button type="button" class="report-close" id="report-close"
+                aria-label="Close report form">×</button>
+
+        <h2 id="report-modal-title">Report Stock Mismatch</h2>
+
+        <p class="report-description">
+          Help us identify information that may be incorrect.
+          Please provide accurate details.
+        </p>
+
+        <p class="muted" id="report-shop-name"></p>
+
+        <form id="gas-report-form">
+          <div class="report-field">
+            <label for="report-type">What is incorrect?</label>
+
+            <select id="report-type" name="report_type" required>
+              <option value="stock_mismatch">Stock availability is incorrect</option>
+              <option value="wrong_quantity">Reported quantity is incorrect</option>
+              <option value="wrong_cylinder">Cylinder type is incorrect</option>
+              <option value="incorrect_shop_info">Shop information is incorrect</option>
+              <option value="other">Other issue</option>
+            </select>
+          </div>
+
+          <div class="report-field">
+            <label for="report-description">Describe the issue</label>
+
+            <textarea id="report-description"
+                      name="description"
+                      minlength="10"
+                      maxlength="1000"
+                      required
+                      placeholder="Explain what seems incorrect (10–1000 characters)."></textarea>
+
+            <p class="report-help">
+              Don't include passwords, private information, or unrelated details.
+            </p>
+          </div>
+
+          <div class="report-actions">
+            <button class="btn" type="submit" id="report-submit">
+              Submit report
+            </button>
+
+            <button class="btn secondary" type="button" id="report-cancel">
+              Cancel
+            </button>
+          </div>
+
+          <div id="report-status"
+               class="report-status"
+               role="status"
+               aria-live="polite"></div>
+        </form>
+      </section>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeModal = () => {
+      if (modal.dataset.submitting === "true") return;
+
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    };
+
+    $("report-close").addEventListener("click", closeModal);
+    $("report-cancel").addEventListener("click", closeModal);
+
+    modal.addEventListener("click", event => {
+      if (event.target === modal) closeModal();
+    });
+
+    if (!document.documentElement.dataset.reportEscapeBound) {
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          const openModal = $("gas-report-modal");
+
+          if (
+            openModal?.classList.contains("open") &&
+            openModal.dataset.submitting !== "true"
+          ) {
+            openModal.classList.remove("open");
+            openModal.setAttribute("aria-hidden", "true");
+          }
+        }
+      });
+
+      document.documentElement.dataset.reportEscapeBound = "true";
+    }
+
+    // Submit the report to the existing backend API.
+    $("gas-report-form").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const form = event.currentTarget;
+      const shopId = modal.dataset.shopId;
+      const type = $("report-type").value;
+      const description = $("report-description").value.trim();
+      const submitButton = $("report-submit");
+      const status = $("report-status");
+
+      status.className = "report-status";
+      status.textContent = "";
+
+      if (!shopId) {
+        status.textContent =
+          "Shop information is missing. Close this form and try again.";
+
+        status.classList.add("visible", "error");
+        return;
+      }
+
+      if (description.length < 10 || description.length > 1000) {
+        status.textContent =
+          "Please enter a description between 10 and 1000 characters.";
+
+        status.classList.add("visible", "error");
+        $("report-description").focus();
+        return;
+      }
+
+      if (!getToken()) {
+        location.href = pagePrefix() + "auth/login.html";
+        return;
+      }
+
+      modal.dataset.submitting = "true";
+      submitButton.disabled = true;
+      submitButton.textContent = "Submitting…";
+
+      status.textContent = "Submitting your report…";
+      status.classList.add("visible", "info");
+
+      try {
+        await request(
+          `/api/shops/${encodeURIComponent(shopId)}/reports`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              report_type: type,
+              description
+            })
+          }
+        );
+
+        status.textContent =
+          "Report submitted. Thank you for helping improve GAS-INFO.";
+
+        status.className = "report-status visible success";
+
+        form.reset();
+        modal.dataset.submitted = "true";
+
+      } catch (error) {
+        status.textContent =
+          `Could not submit the report: ${error.message}. Please try again later.`;
+
+        status.className = "report-status visible error";
+        modal.dataset.submitted = "false";
+
+      } finally {
+        modal.dataset.submitting = "false";
+
+        if (modal.dataset.submitted === "true") {
+          submitButton.disabled = true;
+          submitButton.textContent = "Submitted";
+        } else {
+          submitButton.disabled = false;
+          submitButton.textContent = "Submit report";
+        }
+      }
+    });
+
+    return modal;
+  }
+
+  function openReportModal(shopId, shopName) {
+    const modal = ensureReportModal();
+
+    modal.dataset.shopId = String(shopId);
+    modal.dataset.submitted = "false";
+    modal.dataset.submitting = "false";
+
+    $("report-shop-name").textContent =
+      `Shop: ${shopName || "Selected shop"}`;
+
+    $("report-status").textContent = "";
+    $("report-status").className = "report-status";
+
+    $("gas-report-form").reset();
+
+    const submitButton = $("report-submit");
+    submitButton.disabled = false;
+    submitButton.textContent = "Submit report";
+
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+
+    $("report-type").focus();
+  }
+
   function bindCards(root) {
+    // View shop reviews.
     root.querySelectorAll("[data-reviews]").forEach(button => {
       button.onclick = async () => {
         const id = button.dataset.reviews;
         const element = $(`shop-reviews-${id}`);
 
         try {
-          const data = await request(`/api/shops/${encodeURIComponent(id)}/reviews`);
+          const data = await request(
+            `/api/shops/${encodeURIComponent(id)}/reviews`
+          );
+
           const reviews = data.reviews || [];
 
           element.innerHTML = reviews.length
@@ -118,12 +339,14 @@
                 `<p><b>${esc(review.username)}</b> · ${esc(review.rating)}/5 — ${esc(review.review_text || "No comment")}</p>`
               ).join("")
             : `<p class="muted">No reviews yet.</p>`;
+
         } catch (error) {
           element.textContent = error.message;
         }
       };
     });
 
+    // Submit a rating or review.
     root.querySelectorAll("[data-review]").forEach(button => {
       button.onclick = async () => {
         if (!getToken()) {
@@ -132,44 +355,50 @@
         }
 
         const rating = Number(prompt("Give a rating from 1 to 5:"));
-        if (!Number.isInteger(rating) || rating < 1 || rating > 5) return;
 
-        const reviewText = prompt("Optional written review (cancel to leave blank):") || "";
+        if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+          return;
+        }
+
+        const reviewText =
+          prompt("Optional written review (cancel to leave blank):") || "";
 
         try {
-          await request(`/api/shops/${encodeURIComponent(button.dataset.review)}/reviews`, {
-            method: "POST",
-            body: JSON.stringify({ rating, review_text: reviewText })
-          });
+          await request(
+            `/api/shops/${encodeURIComponent(button.dataset.review)}/reviews`,
+            {
+              method: "POST",
+              body: JSON.stringify({
+                rating,
+                review_text: reviewText
+              })
+            }
+          );
+
           alert("Review saved. Thank you.");
+
         } catch (error) {
           alert(error.message);
         }
       };
     });
 
+    // Open the report popup for the selected shop.
     root.querySelectorAll("[data-report]").forEach(button => {
-      button.onclick = async () => {
+      button.onclick = () => {
         if (!getToken()) {
           location.href = pagePrefix() + "auth/login.html";
           return;
         }
 
-        const description = prompt("Describe the stock mismatch or incorrect shop information:");
-        if (!description?.trim()) return;
+        const shopId = button.dataset.report;
+        const shopCard = button.closest(".result-card");
 
-        try {
-          await request(`/api/shops/${encodeURIComponent(button.dataset.report)}/reports`, {
-            method: "POST",
-            body: JSON.stringify({
-              report_type: "stock_mismatch",
-              description: description.trim()
-            })
-          });
-          alert("Report submitted for review.");
-        } catch (error) {
-          alert(error.message);
-        }
+        const shopName =
+          shopCard?.querySelector("h3")?.textContent?.trim()
+          || "Selected shop";
+
+        openReportModal(shopId, shopName);
       };
     });
   }
@@ -185,9 +414,14 @@
   let locationRows = [];
 
   function uniqueValues(values) {
-    return [...new Set(values
-      .filter(value => value !== null && value !== undefined && String(value).trim() !== "")
-      .map(value => String(value).trim())
+    return [...new Set(
+      values
+        .filter(value =>
+          value !== null &&
+          value !== undefined &&
+          String(value).trim() !== ""
+        )
+        .map(value => String(value).trim())
     )].sort((a, b) => a.localeCompare(b));
   }
 
@@ -205,36 +439,51 @@
     const district = $("district")?.value.trim() || "";
     const municipality = $("municipality")?.value.trim() || "";
 
-    const provinceRows = locationRows.filter(row =>
-      !province || String(row.province || "").toLowerCase().includes(province.toLowerCase())
+    setSuggestions(
+      "province",
+      locationRows.map(row => row.province)
     );
 
-    setSuggestions("province", locationRows.map(row => row.province));
-
-    setSuggestions("district", locationRows
-      .filter(row =>
-        (!province || row.province === province) &&
-        (!district || String(row.district || "").toLowerCase().includes(district.toLowerCase()))
-      )
-      .map(row => row.district)
+    setSuggestions(
+      "district",
+      locationRows
+        .filter(row =>
+          (!province || row.province === province) &&
+          (
+            !district ||
+            String(row.district || "")
+              .toLowerCase()
+              .includes(district.toLowerCase())
+          )
+        )
+        .map(row => row.district)
     );
 
-    setSuggestions("municipality", locationRows
-      .filter(row =>
-        (!province || row.province === province) &&
-        (!district || row.district === district) &&
-        (!municipality || String(row.municipality || "").toLowerCase().includes(municipality.toLowerCase()))
-      )
-      .map(row => row.municipality)
+    setSuggestions(
+      "municipality",
+      locationRows
+        .filter(row =>
+          (!province || row.province === province) &&
+          (!district || row.district === district) &&
+          (
+            !municipality ||
+            String(row.municipality || "")
+              .toLowerCase()
+              .includes(municipality.toLowerCase())
+          )
+        )
+        .map(row => row.municipality)
     );
 
-    setSuggestions("ward", locationRows
-      .filter(row =>
-        (!province || row.province === province) &&
-        (!district || row.district === district) &&
-        (!municipality || row.municipality === municipality)
-      )
-      .map(row => row.ward_no)
+    setSuggestions(
+      "ward",
+      locationRows
+        .filter(row =>
+          (!province || row.province === province) &&
+          (!district || row.district === district) &&
+          (!municipality || row.municipality === municipality)
+        )
+        .map(row => row.ward_no)
     );
   }
 
@@ -245,19 +494,27 @@
 
     try {
       const data = await request("/api/locations");
-      locationRows = Array.isArray(data.locations) ? data.locations : [];
+
+      locationRows = Array.isArray(data.locations)
+        ? data.locations
+        : [];
 
       updateSuggestions();
 
       if (note && locationRows.length === 0) {
-        note.textContent = "Verified location suggestions are not available yet. You can still enter a location manually.";
+        note.textContent =
+          "Verified location suggestions are not available yet. You can still enter a location manually.";
       } else if (note) {
-        note.textContent = "Type to see matching location suggestions, or enter a location manually.";
+        note.textContent =
+          "Type to see matching location suggestions, or enter a location manually.";
       }
+
     } catch (error) {
       console.error("Location loading failed:", error);
+
       if (note) {
-        note.textContent = "Location suggestions are temporarily unavailable. You can still search using text fields.";
+        note.textContent =
+          "Location suggestions are temporarily unavailable. You can still search using text fields.";
       }
     }
   }
@@ -292,21 +549,32 @@
   async function search(filters, root, kind = "all") {
     if (!root) return;
 
-    root.innerHTML = `<p class="notice">Searching actual GAS-INFO records…</p>`;
+    root.innerHTML =
+      `<p class="notice">Searching actual GAS-INFO records…</p>`;
 
     const queryFilters = { ...filters };
 
-    // Quantity is optional; it is not a search criterion by itself.
-    if (!queryFilters.quantity) delete queryFilters.quantity;
+    if (!queryFilters.quantity) {
+      delete queryFilters.quantity;
+    }
 
     try {
-      const data = await request("/api/search?" + paramsToQuery(queryFilters));
-      let results = Array.isArray(data.results) ? data.results : [];
+      const data = await request(
+        "/api/search?" + paramsToQuery(queryFilters)
+      );
+
+      let results = Array.isArray(data.results)
+        ? data.results
+        : [];
 
       if (kind === "high-rated") {
-        results = results.filter(record => Number(record.rating) >= 4);
+        results = results.filter(
+          record => Number(record.rating) >= 4
+        );
       } else if (kind === "others") {
-        results = results.filter(record => Number(record.rating) < 4);
+        results = results.filter(
+          record => Number(record.rating) < 4
+        );
       }
 
       root.innerHTML = results.length
@@ -316,19 +584,23 @@
       bindCards(root);
 
       const summary = $("search-summary");
+
       if (summary) {
         const lower = data.lowerQuantityAvailable
           ? ` Some shops reported a quantity below your requested amount (${esc(data.requestedQuantity)}); check each reported quantity carefully.`
           : "";
-        summary.textContent = `${results.length} result(s) found.${lower}`;
+
+        summary.textContent =
+          `${results.length} result(s) found.${lower}`;
       }
+
     } catch (error) {
-      root.innerHTML = `<div class="notice">Could not load results: ${esc(error.message)}</div>`;
+      root.innerHTML =
+        `<div class="notice">Could not load results: ${esc(error.message)}</div>`;
     }
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    // Set up autocomplete on the homepage.
     if ($("search-form")) {
       loadLocations();
 
@@ -345,38 +617,56 @@
         const filters = getFilters(form);
 
         if (!hasSearchFilter(filters)) {
-          alert("Please enter a location or a cylinder name before searching.");
+          alert(
+            "Please enter a location or a cylinder name before searching."
+          );
           return;
         }
 
-        if (filters.quantity && (!Number.isFinite(Number(filters.quantity)) || Number(filters.quantity) < 1)) {
+        if (
+          filters.quantity &&
+          (
+            !Number.isFinite(Number(filters.quantity)) ||
+            Number(filters.quantity) < 1
+          )
+        ) {
           alert("Quantity must be at least 1.");
           return;
         }
 
-        sessionStorage.setItem("gasInfoLastSearch", JSON.stringify(filters));
+        sessionStorage.setItem(
+          "gasInfoLastSearch",
+          JSON.stringify(filters)
+        );
 
         const resultsSection = $("results");
-        if (resultsSection) resultsSection.style.display = "block";
 
-        // Close the expanded form after a valid search.
+        if (resultsSection) {
+          resultsSection.style.display = "block";
+        }
+
         form.classList.remove("open");
 
         const root = $("results-list");
+
         await search(filters, root);
 
-        resultsSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+        resultsSection?.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
       });
     }
 
-    // Results pages automatically reuse the last valid homepage search.
     const root = $("results-list");
 
     if (root && !$("search-form")) {
       let filters = {};
 
       try {
-        filters = JSON.parse(sessionStorage.getItem("gasInfoLastSearch") || "{}");
+        filters = JSON.parse(
+          sessionStorage.getItem("gasInfoLastSearch") || "{}"
+        );
       } catch {
         filters = {};
       }
@@ -384,7 +674,8 @@
       const kind = document.body.dataset.resultKind || "all";
 
       if (!hasSearchFilter(filters)) {
-        root.innerHTML = `<div class="notice">Go to Search / Explore and enter a location or cylinder name to find matching shops.</div>`;
+        root.innerHTML =
+          `<div class="notice">Go to Search / Explore and enter a location or cylinder name to find matching shops.</div>`;
         return;
       }
 
@@ -392,4 +683,3 @@
     }
   });
 })();
-                          
