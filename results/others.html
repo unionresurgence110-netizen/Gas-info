@@ -1,11 +1,193 @@
+
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Other Results | GAS-INFO</title><link rel="stylesheet" href="../css/style.css"></head>
-<body data-result-kind="others"><header class="navbar"><div class="nav-inner"><a class="brand" href="../index.html">GAS-INFO</a>
-<nav id="nav-links" class="nav-links"></nav><button class="menu-btn" onclick="toggleMenu()">☰</button></div>
-<div id="mobile-menu" class="mobile-menu"></div></header>
-<main class="container"><div class="page-title"><h1>OTHERS</h1></div><p class="muted">Results use the most recent search in this browser session.</p><div id="results-list"><p class="notice">Loading actual GAS-INFO results…</p></div></main>
-<footer><div class="footer-inner"><div><h3>GAS-INFO</h3><p class="muted">Gas cylinder availability information platform. Information is provided by traders and may change at any time.</p></div>
-<div class="footer-links"><h3>Information</h3><a href="../about.html">About Us</a><a href="../reviews.html">Rate & Reviews</a><a href="../updates.html">Updates</a></div>
-<div class="footer-links"><h3>Legal</h3><a href="../terms.html">Terms & Penalties</a><a href="../legal.html">Legal & Compliance</a><a href="../contact.html">Contact / Report</a></div></div></footer>
-<script src="../js/script.js"></script><script src="../js/public-api.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Other Results | GAS-INFO</title>
+  <meta name="description"
+        content="Explore other gas cylinder availability results on GAS-INFO.">
+
+  <link rel="stylesheet" href="../css/style.css">
+
+  <style>
+    .results-hero {
+      padding: 30px 24px;
+      margin: 24px 0;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #123b38, #172b3c);
+      color: #fff;
+    }
+
+    .results-hero .eyebrow {
+      display: inline-block;
+      padding: 7px 12px;
+      margin-bottom: 12px;
+      border-radius: 30px;
+      background: rgba(255,255,255,.12);
+      font-size: .85rem;
+    }
+
+    .results-hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.8rem, 5vw, 2.5rem);
+    }
+
+    .results-hero p {
+      max-width: 700px;
+      margin-bottom: 0;
+      line-height: 1.7;
+    }
+
+    .results-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 22px 0;
+    }
+
+    .results-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .results-tabs a {
+      display: inline-block;
+      padding: 10px 15px;
+      border: 1px solid rgba(128,128,128,.3);
+      border-radius: 12px;
+      text-decoration: none;
+    }
+
+    .results-tabs a.active {
+      font-weight: 700;
+      border-color: currentColor;
+    }
+
+    .results-info {
+      margin: 16px 0;
+      line-height: 1.7;
+    }
+
+    .results-disclaimer {
+      margin: 24px 0;
+      padding: 18px;
+      border-radius: 14px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 600px) {
+      .results-hero { padding: 24px 18px; }
+      .results-toolbar { align-items: flex-start; }
+    }
+  </style>
+</head>
+
+<body data-result-kind="others">
+
+  <header class="navbar">
+    <div class="nav-inner">
+      <a class="brand" href="../index.html">GAS-INFO</a>
+      <nav id="nav-links" class="nav-links"></nav>
+      <button class="menu-btn" onclick="toggleMenu()"
+              aria-label="Toggle navigation">☰</button>
+    </div>
+    <div id="mobile-menu" class="mobile-menu"></div>
+  </header>
+
+  <main class="container">
+
+    <section class="results-hero">
+      <span class="eyebrow">🧭 Explore More</span>
+      <h1>Other Results</h1>
+      <p>
+        Explore other matching availability listings from your latest
+        search. Results depend on the information currently available
+        through GAS-INFO.
+      </p>
+    </section>
+
+    <section class="results-toolbar">
+      <div>
+        <h2 class="section-title">🔎 More Availability Options</h2>
+        <p class="muted">
+          Browse the other listings returned for your search.
+        </p>
+      </div>
+
+      <nav class="results-tabs" aria-label="Result categories">
+        <a href="all.html">📋 All</a>
+        <a href="high-rated.html">⭐ High-Rated</a>
+        <a class="active" href="others.html"
+           aria-current="page">🧭 Others</a>
+      </nav>
+    </section>
+
+    <p id="search-summary" class="muted results-info"
+       aria-live="polite">
+      Loading your latest search…
+    </p>
+
+    <section id="results-list" aria-live="polite">
+      <div class="card">
+        <h2>⏳ Loading results</h2>
+        <p class="muted">
+          Please wait while GAS-INFO checks for available results.
+        </p>
+      </div>
+    </section>
+
+    <section class="results-disclaimer notice">
+      <strong>ℹ️ Please note</strong>
+      <p>
+        Stock information is trader-provided and may change at any time.
+        Confirm availability directly with the trader before visiting.
+        GAS-INFO is an information platform, not a gas seller.
+      </p>
+    </section>
+
+    <div style="text-align:center; margin:24px 0 32px;">
+      <a class="btn" href="../index.html#search">
+        🔍 Search Again
+      </a>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+
+      <div>
+        <h3>GAS-INFO</h3>
+        <p class="muted">
+          Gas cylinder availability information platform.
+          Information is provided by traders and may change at any time.
+        </p>
+      </div>
+
+      <div class="footer-links">
+        <h3>Information</h3>
+        <a href="../about.html">About Us</a>
+        <a href="../reviews.html">Rate &amp; Reviews</a>
+        <a href="../updates.html">Updates</a>
+      </div>
+
+      <div class="footer-links">
+        <h3>Legal</h3>
+        <a href="../terms.html">Terms &amp; Penalties</a>
+        <a href="../legal.html">Legal &amp; Compliance</a>
+        <a href="../privacy.html">🔒 Privacy Policy</a>
+        <a href="../contact.html">Contact / Report</a>
+      </div>
+
+    </div>
+  </footer>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/public-api.js"></script>
+</body>
+</html>
