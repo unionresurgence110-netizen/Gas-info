@@ -1,16 +1,10 @@
-GAS-INFO Phase 1 - Stable Multi-File Frontend
-===============================================
+GAS-INFO
+========
 
-Open index.html in Acode/browser.
+GAS-INFO is an informational platform for trader-reported gas-cylinder availability. It does not sell, book, reserve, deliver, or accept payment for cylinders.
 
-IMPORTANT:
-- Navbar contains only Home, Search/Explore, Updates, Rate & Reviews, Customer/Trader, and Theme.
-- Legal/information links remain in the footer.
-- Existing HTML pages are separate files.
-- Shared styling is in css/style.css.
-- Shared navigation/theme JS is in js/script.js.
-- public/image/banner.png is reserved for the project banner.
+Static frontend pages are in the project root. Frontend scripts are in js/. The Express API is in backend/. The PostgreSQL schema for a fresh database is in database/schema.sql.
 
-This is the Phase 1 frontend skeleton. Authentication, database, real search,
-stock updates, reviews, reports, notifications and admin features are NOT
-pretended to be live yet.
+For backend setup, use Node.js 20+, install dependencies inside backend/, configure private environment variables using backend/.env.example, and start with npm start. Never commit real credentials or .env files. Review the database schema and back up any existing database before applying changes.
+
+See README.md for setup guidance and AUDIT_STATUS.md for locally implemented fixes and remaining live verification. Forgot Password remains paused as requested. Creating this source ZIP does not deploy the website or verify the live Render/Neon services.
