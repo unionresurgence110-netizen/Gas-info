@@ -14,12 +14,13 @@ app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 const allowed = (process.env.CORS_ORIGIN || '').split(',').map(x => x.trim()).filter(Boolean);
-app.use(cors({ origin: allowed.length ? allowed : true }));
+app.use(cors({ origin: allowed.length ? allowed : ['https://unionresurgence110-netizen.github.io'] }));
 app.use(express.json({ limit: '200kb' }));
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.DATABASE_URL && !/localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL) ? { rejectUnauthorized: false } : false, connectionTimeoutMillis: 10000 });
 const asyncRoute = fn => (req,res,next) => Promise.resolve(fn(req,res,next)).catch(next);
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
 const resetLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 5, standardHeaders: true, legacyHeaders: false });
+const duplicateCheckLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false });
 const fail = (res, status, error) => res.status(status).json({ error });
 const text = (v, max=255) => typeof v === 'string' ? v.trim().slice(0,max) : '';
 const required = (obj, fields) => fields.every(k => typeof obj[k] === 'string' && obj[k].trim());
@@ -44,8 +45,9 @@ app.get('/api/health', asyncRoute(async (req,res) => {
   res.json({ ok:true, database:'connected', time:r.rows[0].database_time });
 }));
 app.get('/api/health/schema', asyncRoute(async (req,res) => {
-  const r = await pool.query("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE' ORDER BY table_name");
-  res.json({ count:r.rowCount, tables:r.rows.map(x=>x.table_name) });
+  // Keep the compatibility endpoint but do not expose internal table names.
+  await pool.query('SELECT 1');
+  res.json({ ok:true, database:'connected', schemaDetails:'not exposed publicly' });
 }));
 
 app.post('/api/auth/register', authLimiter, asyncRoute(async (req,res) => {
@@ -83,7 +85,7 @@ app.get('/api/search', asyncRoute(async (req,res) => {
  res.json({ results:r.rows, count:r.rowCount, requestedQuantity:qty, lowerQuantityAvailable:lower.length>0, disclaimer:'Stock information is provided by the trader and may change at any time. Please check the latest information before visiting.' });
 }));
 
-app.post('/api/trader/shops/check-duplicate',asyncRoute(async(req,res)=>{const name=text(req.body.shop_name,180),municipality=text(req.body.municipality,160),phone=text(req.body.phone,40),businessEmail=text(req.body.business_email,254).toLowerCase();if(!name||!municipality)return fail(res,400,'Shop name and municipality are required');const r=await pool.query(`SELECT EXISTS(SELECT 1 FROM shops WHERE shop_status IN ('active','pending','suspended') AND ((LOWER(shop_name)=LOWER($1) AND LOWER(municipality)=LOWER($2)) OR ($3<>'' AND phone=$3) OR ($4<>'' AND LOWER(COALESCE(business_email,''))=LOWER($4)))) AS possible_duplicate`,[name,municipality,phone,businessEmail]);res.json({possibleDuplicate:r.rows[0].possible_duplicate,message:r.rows[0].possible_duplicate?'You may have already registered this shop. Please check your existing account before creating a new listing.':'No strong duplicate match found.'});}));
+app.post('/api/trader/shops/check-duplicate',duplicateCheckLimiter,asyncRoute(async(req,res)=>{const name=text(req.body.shop_name,180),municipality=text(req.body.municipality,160),phone=text(req.body.phone,40),businessEmail=text(req.body.business_email,254).toLowerCase();if(!name||!municipality)return fail(res,400,'Shop name and municipality are required');const r=await pool.query(`SELECT EXISTS(SELECT 1 FROM shops WHERE shop_status IN ('active','pending','suspended') AND ((LOWER(shop_name)=LOWER($1) AND LOWER(municipality)=LOWER($2)) OR ($3<>'' AND phone=$3) OR ($4<>'' AND LOWER(COALESCE(business_email,''))=LOWER($4)))) AS possible_duplicate`,[name,municipality,phone,businessEmail]);res.json({possibleDuplicate:r.rows[0].possible_duplicate,message:r.rows[0].possible_duplicate?'You may have already registered this shop. Please check your existing account before creating a new listing.':'No strong duplicate match found.'});}));
 app.post('/api/trader/shops',auth,getActiveUser,roles('trader'),asyncRoute(async(req,res)=>{
  const b=req.body;
  if(!required(b,['shop_name','province','district','municipality','exact_location']) || !Number.isFinite(Number(b.latitude)) || !Number.isFinite(Number(b.longitude)) || Math.abs(Number(b.latitude))>90 || Math.abs(Number(b.longitude))>180) return fail(res,400,'Shop name, location fields, latitude and longitude are required');
@@ -106,16 +108,24 @@ app.put('/api/trader/shops/:shopId/stock',auth,getActiveUser,roles('trader'),asy
  await client.query('INSERT INTO stock_update_history(shop_id,updated_by,cylinder_name,previous_quantity,new_quantity) VALUES($1,$2,$3,$4,$5)',[req.params.shopId,req.user.user_id,cylinder,old,quantity]); await client.query('COMMIT'); res.json({stock:saved.rows[0]});
  } catch(e){await client.query('ROLLBACK');throw e;} finally{client.release();}
 }));
-app.post('/api/shops/:shopId/reviews',auth,getActiveUser,asyncRoute(async(req,res)=>{
+app.post('/api/shops/:shopId/reviews',auth,getActiveUser,roles('customer'),asyncRoute(async(req,res)=>{
  if(req.user.role==='admin')return fail(res,403,'Admin accounts cannot submit customer reviews'); const rating=Number(req.body.rating), review=text(req.body.review_text,3000); if(!Number.isInteger(rating)||rating<1||rating>5)return fail(res,400,'Rating must be 1–5');
  const shop=await pool.query("SELECT shop_id FROM shops WHERE shop_id=$1 AND shop_status='active'",[req.params.shopId]); if(!shop.rowCount)return fail(res,404,'Active shop not found');
- const r=await pool.query(`INSERT INTO reviews(shop_id,user_id,rating,review_text,status) VALUES($1,$2,$3,$4,'active') ON CONFLICT(shop_id,user_id) WHERE status='active' DO UPDATE SET rating=EXCLUDED.rating,review_text=EXCLUDED.review_text,updated_at=NOW() RETURNING *`,[req.params.shopId,req.user.user_id,rating,review||null]); res.status(201).json({review:r.rows[0]});
+ const r=await pool.query(`INSERT INTO reviews(shop_id,user_id,rating,review_text,status) VALUES($1,$2,$3,$4,'active') ON CONFLICT(shop_id,user_id) WHERE status='active' DO UPDATE SET rating=EXCLUDED.rating,review_text=EXCLUDED.review_text,updated_at=NOW() RETURNING *`,[req.params.shopId,req.user.user_id,rating,review||null]);
+ const stats=await pool.query(`SELECT COALESCE(AVG(rating),0)::numeric(3,2) AS rating,COUNT(*)::int AS review_count FROM reviews WHERE shop_id=$1 AND status='active'`,[req.params.shopId]);
+ res.status(201).json({review:r.rows[0],rating:Number(stats.rows[0].rating),review_count:stats.rows[0].review_count});
 }));
 app.get('/api/shops/:shopId/reviews',asyncRoute(async(req,res)=>{const r=await pool.query(`SELECT r.review_id,r.rating,r.review_text,r.created_at,r.updated_at,u.username FROM reviews r JOIN users u ON u.user_id=r.user_id WHERE r.shop_id=$1 AND r.status='active' ORDER BY r.created_at DESC LIMIT 100`,[req.params.shopId]);res.json({reviews:r.rows});}));
-app.post('/api/shops/:shopId/reports',auth,getActiveUser,asyncRoute(async(req,res)=>{
- if(req.user.role==='admin')return fail(res,403,'Admin accounts cannot submit customer reports'); const type=text(req.body.report_type,40), desc=text(req.body.description,3000); if(!['stock_mismatch','incorrect_shop_info','other_information_issue'].includes(type)||!desc)return fail(res,400,'Valid report type and description are required');
+app.post('/api/shops/:shopId/reports',auth,getActiveUser,roles('customer'),asyncRoute(async(req,res)=>{
+ if(req.user.role==='admin')return fail(res,403,'Admin accounts cannot submit customer reports');
+ const rawType=text(req.body.report_type,40), desc=text(req.body.description,3000);
+ const reportTypes={stock_mismatch:'stock_mismatch',wrong_quantity:'stock_mismatch',wrong_cylinder:'stock_mismatch',incorrect_shop_info:'incorrect_shop_info',other:'other_information_issue',other_information_issue:'other_information_issue'};
+ const type=reportTypes[rawType];
+ if(!type||!desc)return fail(res,400,'Valid report type and description are required');
+ const categoryNote=rawType==='wrong_quantity'?'[Specific issue: reported quantity is incorrect]\n':rawType==='wrong_cylinder'?'[Specific issue: cylinder type is incorrect]\n':'';
+ const fullDescription=(categoryNote+desc).slice(0,3000);
  const shop=await pool.query("SELECT shop_id,owner_user_id FROM shops WHERE shop_id=$1 AND shop_status='active'",[req.params.shopId]); if(!shop.rowCount)return fail(res,404,'Active shop not found');
- const r=await pool.query('INSERT INTO reports(shop_id,reported_by,report_type,description) VALUES($1,$2,$3,$4) RETURNING *',[req.params.shopId,req.user.user_id,type,desc]); await pool.query("INSERT INTO notifications(user_id,type,title,message) VALUES($1,'shop_report','New information report','A customer reported an information issue for your shop.')",[shop.rows[0].owner_user_id]); res.status(201).json({report:r.rows[0]});
+ const r=await pool.query('INSERT INTO reports(shop_id,reported_by,report_type,description) VALUES($1,$2,$3,$4) RETURNING *',[req.params.shopId,req.user.user_id,type,fullDescription]); await pool.query("INSERT INTO notifications(user_id,type,title,message) VALUES($1,'shop_report','New information report','A customer reported an information issue for your shop.')",[shop.rows[0].owner_user_id]); res.status(201).json({report:r.rows[0]});
 }));
 app.get('/api/notifications',auth,getActiveUser,asyncRoute(async(req,res)=>{const r=await pool.query('SELECT * FROM notifications WHERE user_id=$1 ORDER BY created_at DESC LIMIT 100',[req.user.user_id]);res.json({notifications:r.rows});}));
 app.patch('/api/notifications/:id/read',auth,getActiveUser,asyncRoute(async(req,res)=>{const r=await pool.query('UPDATE notifications SET is_read=TRUE WHERE notification_id=$1 AND user_id=$2 RETURNING *',[req.params.id,req.user.user_id]);if(!r.rowCount)return fail(res,404,'Notification not found');res.json({notification:r.rows[0]});}));
@@ -128,7 +138,7 @@ app.patch('/api/profile',auth,getActiveUser,asyncRoute(async(req,res)=>{
  try { const r=await pool.query('UPDATE users SET username=$1,email=$2,updated_at=NOW() WHERE user_id=$3 RETURNING user_id,username,email,role,account_status,created_at',[username,email,req.user.user_id]); res.json({user:r.rows[0]}); }
  catch(e){if(e.code==='23505')return fail(res,409,'Username or email is already in use');throw e;}
 }));
-app.get('/api/customer/reviews',auth,getActiveUser,asyncRoute(async(req,res)=>{
+app.get('/api/customer/reviews',auth,getActiveUser,roles('customer'),asyncRoute(async(req,res)=>{
  const r=await pool.query(`SELECT rv.review_id,rv.shop_id,rv.rating,rv.review_text,rv.status,rv.created_at,rv.updated_at,s.shop_name FROM reviews rv JOIN shops s ON s.shop_id=rv.shop_id WHERE rv.user_id=$1 ORDER BY rv.updated_at DESC LIMIT 100`,[req.user.user_id]);res.json({reviews:r.rows});
 }));
 app.get('/api/trader/reviews',auth,getActiveUser,roles('trader'),asyncRoute(async(req,res)=>{
