@@ -320,6 +320,66 @@
     $("report-type").focus();
   }
 
+  function openReviewModal(shopId, shopName) {
+    let modal = $("gas-review-modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "gas-review-modal";
+      modal.className = "report-modal";
+      modal.setAttribute("aria-hidden", "true");
+      modal.innerHTML = `
+        <section class="report-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title">
+          <button type="button" class="report-close" id="review-close" aria-label="Close review form">×</button>
+          <h2 id="review-modal-title">Rate this shop</h2>
+          <p class="report-description" id="review-shop-name"></p>
+          <form id="gas-review-form">
+            <div class="report-field"><label for="review-rating">Your rating</label>
+              <select id="review-rating" name="rating" required>
+                <option value="">Choose a rating</option><option value="5">★★★★★ — Excellent</option><option value="4">★★★★☆ — Good</option><option value="3">★★★☆☆ — Okay</option><option value="2">★★☆☆☆ — Poor</option><option value="1">★☆☆☆☆ — Very poor</option>
+              </select>
+            </div>
+            <div class="report-field"><label for="review-text">Written review (optional)</label><textarea id="review-text" name="review_text" maxlength="3000" placeholder="Share useful, respectful feedback (up to 3000 characters)."></textarea></div>
+            <div class="report-actions"><button class="btn" type="submit" id="review-submit">Submit review</button><button class="btn secondary" type="button" id="review-cancel">Cancel</button></div>
+            <div id="review-status" class="report-status" role="status" aria-live="polite"></div>
+          </form>
+        </section>`;
+      document.body.appendChild(modal);
+      const close = () => { if (modal.dataset.submitting === "true") return; modal.classList.remove("open"); modal.setAttribute("aria-hidden", "true"); };
+      $("review-close").addEventListener("click", close);
+      $("review-cancel").addEventListener("click", close);
+      modal.addEventListener("click", event => { if (event.target === modal) close(); });
+      document.addEventListener("keydown", event => { if (event.key === "Escape" && modal.classList.contains("open") && modal.dataset.submitting !== "true") close(); });
+      $("gas-review-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        const status = $("review-status"), submit = $("review-submit");
+        const rating = Number($("review-rating").value), reviewText = $("review-text").value.trim();
+        if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+          status.textContent = "Please choose a rating from 1 to 5."; status.className = "report-status visible error"; $("review-rating").focus(); return;
+        }
+        modal.dataset.submitting = "true"; submit.disabled = true; submit.textContent = "Submitting…";
+        status.textContent = "Submitting your review…"; status.className = "report-status visible info";
+        try {
+          const result = await request(`/api/shops/${encodeURIComponent(modal.dataset.shopId)}/reviews`, {method:"POST", body:JSON.stringify({rating,review_text:reviewText})});
+          status.textContent = result.message || "Review saved. Thank you."; status.className = "report-status visible success"; modal.dataset.submitted = "true";
+          const reviewButton = [...document.querySelectorAll("[data-review]")].find(b => b.dataset.review === modal.dataset.shopId);
+          const reviewRoot = reviewButton?.closest(".result-card");
+          if (reviewRoot && Number.isFinite(Number(result.rating)) && Number.isFinite(Number(result.review_count))) {
+            const ratingTag = reviewRoot.querySelector(".tag");
+            if (ratingTag) ratingTag.textContent = `Rating ${Number(result.rating).toFixed(1)}/5 (${Number(result.review_count)} reviews)`;
+          }
+          reviewRoot?.querySelector(`[data-reviews="${modal.dataset.shopId}"]`)?.click();
+          if (window.gasInfoNotify) window.gasInfoNotify("Review saved. Thank you.", "success");
+        } catch (error) {
+          status.textContent = `Could not save your review: ${error.message}`; status.className = "report-status visible error";
+        } finally { modal.dataset.submitting = "false"; submit.disabled = false; submit.textContent = "Submit review"; }
+      });
+    }
+    modal.dataset.shopId = String(shopId); modal.dataset.submitted = "false"; modal.dataset.submitting = "false";
+    $("review-shop-name").textContent = `Shop: ${shopName}`;
+    $("gas-review-form").reset(); $("review-status").textContent = ""; $("review-status").className = "report-status";
+    modal.classList.add("open"); modal.setAttribute("aria-hidden", "false"); $("review-rating").focus();
+  }
+
   function bindCards(root) {
     // View shop reviews.
     root.querySelectorAll("[data-reviews]").forEach(button => {
@@ -354,32 +414,9 @@
           return;
         }
 
-        const rating = Number(prompt("Give a rating from 1 to 5:"));
-
-        if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-          return;
-        }
-
-        const reviewText =
-          prompt("Optional written review (cancel to leave blank):") || "";
-
-        try {
-          await request(
-            `/api/shops/${encodeURIComponent(button.dataset.review)}/reviews`,
-            {
-              method: "POST",
-              body: JSON.stringify({
-                rating,
-                review_text: reviewText
-              })
-            }
-          );
-
-          alert("Review saved. Thank you.");
-
-        } catch (error) {
-          alert(error.message);
-        }
+        const shopCard = button.closest(".result-card");
+        const shopName = shopCard?.querySelector("h3")?.textContent?.trim() || "Selected shop";
+        openReviewModal(button.dataset.review, shopName);
       };
     });
 
@@ -617,8 +654,8 @@
         const filters = getFilters(form);
 
         if (!hasSearchFilter(filters)) {
-          alert(
-            "Please enter a location or a cylinder name before searching."
+          (window.gasInfoNotify || ((m) => console.warn(m)))(
+            "Please enter a location or a cylinder name before searching.", "warning"
           );
           return;
         }
@@ -630,7 +667,7 @@
             Number(filters.quantity) < 1
           )
         ) {
-          alert("Quantity must be at least 1.");
+          (window.gasInfoNotify || ((m) => console.warn(m)))("Quantity must be at least 1.", "warning");
           return;
         }
 

@@ -5,9 +5,9 @@ const NAV = [
   ["All Results", "results/all.html"],
   ["High Rated", "results/high-rated.html"],
   ["Others", "results/others.html"],
+  ["Nearby", "nearby.html"],
   ["Updates", "updates.html"],
-  ["Rate & Reviews", "reviews.html"],
-  ["Customer / Trader", "auth/login.html"]
+  ["Rate & Reviews", "reviews.html"]
 ];
 
 function getLink(path) {
@@ -26,15 +26,28 @@ function renderNav() {
 
   const links = NAV.map(([text, path]) =>
     `<a href="${getLink(path)}">${text}</a>`
-  ).join("");
+  );
+  let account = null;
+  try {
+    const token = sessionStorage.getItem("gasInfoToken");
+    const user = JSON.parse(sessionStorage.getItem("gasInfoUser") || "null");
+    if (token && user && ["customer", "trader", "admin"].includes(user.role)) {
+      const accountPath = user.role === "admin" ? "admin/dashboard.html" : user.role === "trader" ? "trader/dashboard.html" : "customer/profile.html";
+      const accountLabel = user.role === "admin" ? "Admin Console" : user.role === "trader" ? "Trader Dashboard" : "My Profile";
+      account = `<a class="nav-account" href="${getLink(accountPath)}">${accountLabel}</a><button class="nav-btn" type="button" data-nav-logout>Logout</button>`;
+    }
+  } catch (_) { /* Keep public navigation available if session data is malformed. */ }
+  if (!account) links.push(`<a href="${getLink("auth/login.html")}">Login / Register</a>`);
+  const linkMarkup = links.join("");
+  const accountMarkup = account || "";
 
-  box.innerHTML =
-    links +
-    `<button class="nav-btn" onclick="toggleTheme()">☾ Theme</button>`;
-
-  mobile.innerHTML =
-    links +
-    `<a href="#" onclick="toggleTheme();return false">☾ Theme</a>`;
+  box.innerHTML = linkMarkup + accountMarkup + `<button class="nav-btn" type="button" onclick="toggleTheme()">☾ Theme</button>`;
+  mobile.innerHTML = linkMarkup + accountMarkup + `<a href="#" onclick="toggleTheme();return false">☾ Theme</a>`;
+  document.querySelectorAll("[data-nav-logout]").forEach(button => button.addEventListener("click", () => {
+    sessionStorage.removeItem("gasInfoToken");
+    sessionStorage.removeItem("gasInfoUser");
+    location.href = getLink("index.html");
+  }));
 }
 
 function toggleMenu() {

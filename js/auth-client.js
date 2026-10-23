@@ -32,8 +32,21 @@
     return data;
   }
 
-  function message(text) {
-    alert(text);
+  function message(text, kind = 'info') {
+    if (window.gasInfoNotify) window.gasInfoNotify(text, kind);
+    else {
+      const form = document.querySelector('form');
+      let notice = document.getElementById('auth-feedback');
+      if (!notice) {
+        notice = document.createElement('p');
+        notice.id = 'auth-feedback';
+        notice.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+        notice.setAttribute('aria-live', 'polite');
+        notice.className = 'notice';
+        form?.before(notice);
+      }
+      notice.textContent = text;
+    }
   }
 
   function saveSession(data) {
@@ -93,11 +106,10 @@
           saveSession(data);
 
           const role = data.user.role;
-          message(`Login successful. Signed in as ${role}.`);
-
+          // Navigate directly after success; avoid a browser-origin popup.
           window.location.href = roleHome(role);
         } catch (err) {
-          message(err.message);
+          message(err.message, 'error');
         } finally {
           setBusy(login, false);
         }
@@ -136,10 +148,9 @@
 
           saveSession(data);
 
-          message('Customer account created successfully.');
           window.location.href = '../customer/profile.html';
         } catch (err) {
-          message(err.message);
+          message(err.message, 'error');
         } finally {
           setBusy(customer, false);
         }
@@ -202,10 +213,9 @@
 
           if (
             duplicate.possibleDuplicate &&
-            !window.confirm(
-              duplicate.message +
-              '\n\nContinue registration anyway?'
-            )
+            !(await (window.gasInfoConfirm
+              ? window.gasInfoConfirm(duplicate.message + '\n\nContinue registration anyway?')
+              : Promise.resolve(false)))
           ) {
             return;
           }
@@ -245,20 +255,18 @@
             })
           });
 
-          message(
-            shopData.message ||
-            'Trader account and shop submitted. Shop approval is still required.'
-          );
-
+          // The destination dashboard shows the shop's pending status.
           window.location.href = '../trader/dashboard.html';
         } catch (err) {
           if (accountCreated) {
             message(
               `Your trader account was created, but shop submission failed: ${err.message}. ` +
-              'Your login session is saved. Sign in again later and contact support before creating another account.'
+              'Opening shop setup so you can retry without registering another account.',
+              'error'
             );
+            window.setTimeout(() => { window.location.href = '../trader/dashboard.html?shopSetup=failed'; }, 2200);
           } else {
-            message(err.message);
+            message(err.message, 'error');
           }
         } finally {
           setBusy(trader, false);
