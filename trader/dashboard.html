@@ -308,21 +308,34 @@
 <body data-dashboard="trader">
 
     <!-- NAVIGATION -->
-    <header class="navbar">
-        <div class="nav-inner">
-            <a class="brand" href="../index.html">GAS-INFO</a>
+    
+<header class="navbar">
+    <div class="nav-inner">
+        <a class="brand" href="../index.html">GAS-INFO</a>
 
-            <nav class="nav-links" aria-label="Main navigation">
-                <a href="../index.html">🏠 Home</a>
-                <a href="../index.html#search">🔎 Search / Explore</a>
-                <a href="../updates.html">🔔 Updates</a>
-            </nav>
+        <nav id="nav-links" class="nav-links">
+            <a href="../index.html">🏠 Home</a>
+            <a href="../index.html#search">🔎 Search / Explore</a>
+            <a href="../results/all.html">ALL</a>
+            <a href="../results/high-rated.html">HIGH-RATED</a>
+            <a href="../results/others.html">OTHERS</a>
+            <a href="../updates.html">🔔 Updates</a>
+            <a href="../reviews.html">⭐ Rate &amp; Reviews</a>
+            <a href="../customer/login.html">Login / Register</a>
+        </nav>
 
-            <button id="logout" class="btn secondary" type="button">
-                🚪 Logout
-            </button>
-        </div>
-    </header>
+        <button
+            class="menu-btn"
+            type="button"
+            onclick="toggleMenu()"
+            aria-label="Toggle navigation">
+            ☰
+        </button>
+    </div>
+
+    <div id="mobile-menu" class="mobile-menu"></div>
+</header>
+    
 
     <!-- DASHBOARD -->
     <main class="container">
@@ -392,26 +405,35 @@
     </main>
 
     <!-- FOOTER -->
-    <footer>
-        <div class="footer-inner">
-
-            <div>
-                <h3>GAS-INFO</h3>
-                <p class="muted">Gas availability information platform.</p>
-            </div>
-
-            <div class="footer-links">
-                <a href="../about.html">About Us</a>
-                <a href="../terms.html">Terms &amp; Penalties</a>
-            </div>
-
-            <div class="footer-links">
-                <a href="../legal.html">Legal &amp; Compliance</a>
-                <a href="../contact.html">Contact / Report</a>
-            </div>
-
+    
+<footer>
+    <div class="footer-inner">
+        <div>
+            <h3>GAS-INFO</h3>
+            <p class="muted">
+                Gas cylinder availability information platform.
+                Information is provided by traders and may change
+                at any time.
+            </p>
         </div>
-    </footer>
+
+        <div class="footer-links">
+            <h3>Information</h3>
+            <a href="../about.html">About Us</a>
+            <a href="../reviews.html">Rate &amp; Reviews</a>
+            <a href="../updates.html">Updates</a>
+        </div>
+
+        <div class="footer-links">
+            <h3>Legal</h3>
+            <a href="../terms.html">Terms &amp; Penalties</a>
+            <a href="../legal.html">Legal &amp; Compliance</a>
+            <a href="../contact.html">Contact / Report</a>
+            <a href="../privacy.html">🔒 Privacy Policy</a>
+        </div>
+    </div>
+</footer>
+    
 
     <!-- EXISTING SCRIPTS: KEEP THESE -->
     <script src="../js/ui-feedback.js"></script>
