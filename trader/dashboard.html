@@ -1,443 +1,448 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d1117">
+  <title>Trader Dashboard | GAS-INFO</title>
 
-    <title>Trader Dashboard | GAS-INFO</title>
+  <style>
+    /* GAS-INFO original dark theme */
+    :root {
+      color-scheme: dark;
+      --bg: #0d1117;
+      --card: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --accent: #3fb950;
+      --link: #58a6ff;
+    }
 
-    <!-- Keep the existing website styles -->
-    <link rel="stylesheet" href="../css/style.css">
+    * { box-sizing: border-box; }
 
-    <style>
-        /* =================================
-           TRADER DASHBOARD DESIGN
-        ================================= */
+    html { scroll-behavior: smooth; }
 
-        body[data-dashboard="trader"] {
-            --td-bg: #0b1120;
-            --td-panel: rgba(20, 30, 49, 0.88);
-            --td-border: rgba(148, 163, 184, 0.18);
-            --td-text: #e8eef9;
-            --td-muted: #9baac1;
-            --td-accent: #38bdf8;
-            --td-green: #34d399;
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+    }
 
-            background:
-                radial-gradient(ellipse at 10% 0%, rgba(14,165,233,.13), transparent 38%),
-                radial-gradient(ellipse at 100% 35%, rgba(52,211,153,.08), transparent 35%),
-                var(--td-bg);
-            color: var(--td-text);
-            min-height: 100vh;
-        }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
 
-        body[data-dashboard="trader"] *,
-        body[data-dashboard="trader"] *::before,
-        body[data-dashboard="trader"] *::after {
-            box-sizing: border-box;
-        }
+    /* Navigation */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
 
-        body[data-dashboard="trader"] a {
-            transition: color .2s ease, opacity .2s ease;
-        }
+    .nav-inner {
+      max-width: 1200px;
+      margin: auto;
+      padding: 12px 20px;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
 
-        body[data-dashboard="trader"] .navbar {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            background: rgba(11, 17, 32, .88);
-            border-bottom: 1px solid var(--td-border);
-        }
+    .brand {
+      color: #58a6ff;
+      font-size: 1.45rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
 
-        body[data-dashboard="trader"] .nav-inner {
-            width: min(1180px, 92%);
-            min-height: 70px;
-            margin: auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            flex-wrap: wrap;
-            padding: 12px 0;
-        }
+    .nav-links {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 4px 14px;
+    }
 
-        body[data-dashboard="trader"] .brand {
-            font-size: 1.35rem;
-            font-weight: 900;
-            letter-spacing: .5px;
-            color: var(--td-accent);
-            text-decoration: none;
-        }
+    .nav-links a,
+    .nav-links button {
+      display: inline-block;
+      padding: 5px 2px;
+      color: var(--text);
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      font-size: 0.88rem;
+    }
 
-        body[data-dashboard="trader"] .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 22px;
-            flex-wrap: wrap;
-        }
+    .nav-links a:hover,
+    .nav-links button:hover,
+    .footer-links a:hover {
+      color: var(--link);
+    }
 
-        body[data-dashboard="trader"] .nav-links a {
-            color: var(--td-muted);
-            text-decoration: none;
-            font-size: .94rem;
-        }
+    .menu-btn {
+      display: none;
+      padding: 6px 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      cursor: pointer;
+    }
 
-        body[data-dashboard="trader"] .nav-links a:hover {
-            color: var(--td-accent);
-        }
+    .mobile-menu {
+      display: none;
+      padding: 8px 20px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--card);
+    }
 
-        body[data-dashboard="trader"] .container {
-            width: min(1050px, 92%);
-            margin: 0 auto;
-            padding: 34px 0 55px;
-        }
+    .mobile-menu.open { display: block; }
 
-        body[data-dashboard="trader"] .page-title {
-            padding: 25px 0 14px;
-            animation: tdFadeUp .55s ease both;
-        }
+    .mobile-menu a,
+    .mobile-menu button {
+      display: block;
+      width: 100%;
+      padding: 9px 0;
+      text-align: left;
+      color: var(--text);
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
 
-        body[data-dashboard="trader"] .page-title h1 {
-            margin: 0 0 12px;
-            font-size: clamp(1.9rem, 5vw, 2.8rem);
-            font-weight: 900;
-            letter-spacing: -.8px;
-            line-height: 1.2;
-            background: linear-gradient(100deg, #e0f2fe, #38bdf8, #6ee7b7);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
+    /* Main dashboard */
+    .container {
+      width: min(100% - 32px, 1080px);
+      margin: 28px auto 42px;
+    }
 
-        body[data-dashboard="trader"] .page-title p {
-            line-height: 1.7;
-        }
+    .page-title { margin-bottom: 20px; }
 
-        body[data-dashboard="trader"] .muted {
-            color: var(--td-muted);
-        }
+    h1 {
+      margin: 0 0 4px;
+      font-size: clamp(1.65rem, 4vw, 2rem);
+      line-height: 1.3;
+      color: var(--text);
+    }
 
-        body[data-dashboard="trader"] #welcome {
-            font-size: 1rem;
-        }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 1.2rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
 
-        body[data-dashboard="trader"] .notice {
-            padding: 15px 17px;
-            margin: 18px 0 22px;
-            border: 1px solid rgba(56, 189, 248, .22);
-            border-left: 4px solid var(--td-accent);
-            border-radius: 13px;
-            background: rgba(14, 165, 233, .07);
-            color: var(--td-text);
-            line-height: 1.7;
-            overflow-wrap: anywhere;
-        }
+    h3 { margin-top: 0; }
 
-        body[data-dashboard="trader"] section.card {
-            position: relative;
-            padding: clamp(18px, 3.5vw, 28px);
-            margin: 20px 0;
-            border: 1px solid var(--td-border);
-            border-radius: 20px;
-            background: var(--td-panel);
-            box-shadow: 0 14px 40px rgba(0, 0, 0, .15);
-            animation: tdFadeUp .55s ease both;
-            transition: border-color .25s ease, transform .25s ease,
-                        box-shadow .25s ease;
-        }
+    p { overflow-wrap: anywhere; }
 
-        body[data-dashboard="trader"] section.card:hover {
-            border-color: rgba(56, 189, 248, .38);
-            box-shadow: 0 18px 45px rgba(0, 0, 0, .22);
-            transform: translateY(-2px);
-        }
+    .muted { color: var(--muted); }
 
-        body[data-dashboard="trader"] section.card h2 {
-            margin: 0 0 13px;
-            font-size: clamp(1.15rem, 3vw, 1.45rem);
-            line-height: 1.4;
-            color: var(--td-text);
-        }
+    .notice {
+      padding: 12px 15px;
+      margin: 18px 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      overflow-wrap: anywhere;
+    }
 
-        body[data-dashboard="trader"] section.card > p {
-            line-height: 1.7;
-        }
+    .card {
+      padding: 22px;
+      margin: 18px 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: none;
+    }
 
-        body[data-dashboard="trader"] section.card h2::after {
-            content: "";
-            display: block;
-            width: 45px;
-            height: 3px;
-            margin-top: 10px;
-            border-radius: 10px;
-            background: linear-gradient(90deg, var(--td-accent), var(--td-green));
-        }
+    .card > :last-child { margin-bottom: 0; }
 
-        body[data-dashboard="trader"] section.card > div {
-            overflow-wrap: anywhere;
-        }
+    /* Existing dashboard-generated content */
+    #shops, #traderReports, #traderReviews, #notifications {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
 
-        body[data-dashboard="trader"] button,
-        body[data-dashboard="trader"] input,
-        body[data-dashboard="trader"] select,
-        body[data-dashboard="trader"] textarea {
-            font: inherit;
-        }
+    #shops > *,
+    #traderReports > *,
+    #traderReviews > *,
+    #notifications > * {
+      max-width: 100%;
+    }
 
-        body[data-dashboard="trader"] button,
-        body[data-dashboard="trader"] .btn {
-            cursor: pointer;
-            transition: transform .2s ease, filter .2s ease,
-                        box-shadow .2s ease;
-        }
+    input, select, textarea {
+      max-width: 100%;
+      background: #0d1117;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
 
-        body[data-dashboard="trader"] button:hover,
-        body[data-dashboard="trader"] .btn:hover {
-            filter: brightness(1.08);
-        }
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid #58a6ff;
+      outline-offset: 1px;
+    }
 
-        body[data-dashboard="trader"] button:active,
-        body[data-dashboard="trader"] .btn:active {
-            transform: scale(.98);
-        }
+    button, .btn {
+      border-radius: 6px;
+    }
 
-        body[data-dashboard="trader"] button:focus-visible,
-        body[data-dashboard="trader"] a:focus-visible,
-        body[data-dashboard="trader"] input:focus-visible,
-        body[data-dashboard="trader"] select:focus-visible,
-        body[data-dashboard="trader"] textarea:focus-visible {
-            outline: 3px solid rgba(56, 189, 248, .65);
-            outline-offset: 3px;
-        }
+    button:focus-visible, a:focus-visible {
+      outline: 2px solid var(--link);
+      outline-offset: 3px;
+    }
 
-        body[data-dashboard="trader"] .btn.secondary {
-            border: 1px solid var(--td-border);
-            border-radius: 11px;
-            padding: 10px 17px;
-        }
+    /* Keep actions readable without changing their behaviour */
+    .btn:not(.secondary),
+    button[type="submit"] {
+      cursor: pointer;
+    }
 
-        body[data-dashboard="trader"] footer {
-            border-top: 1px solid var(--td-border);
-            background: rgba(5, 10, 20, .6);
-            padding: 30px 0;
-        }
+    .secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 7px 12px;
+      cursor: pointer;
+    }
 
-        body[data-dashboard="trader"] .footer-inner {
-            width: min(1050px, 92%);
-            margin: auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 25px;
-            flex-wrap: wrap;
-        }
+    /* Footer */
+    footer {
+      background: var(--card);
+      border-top: 1px solid var(--border);
+    }
 
-        body[data-dashboard="trader"] footer h3 {
-            margin-top: 0;
-            color: var(--td-accent);
-        }
+    .footer-inner {
+      max-width: 1080px;
+      margin: auto;
+      padding: 28px 20px;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr;
+      gap: 28px;
+    }
 
-        body[data-dashboard="trader"] .footer-links {
-            display: flex;
-            flex-direction: column;
-            gap: 11px;
-        }
+    .footer-inner h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
 
-        body[data-dashboard="trader"] .footer-links a {
-            color: var(--td-muted);
-            text-decoration: none;
-        }
+    .footer-inner p {
+      font-size: 0.9rem;
+      margin-top: 0;
+    }
 
-        body[data-dashboard="trader"] .footer-links a:hover {
-            color: var(--td-accent);
-        }
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 7px;
+    }
 
-        @keyframes tdFadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    .footer-links a {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
 
-        @media (max-width: 650px) {
-            body[data-dashboard="trader"] .nav-inner {
-                width: 92%;
-                gap: 12px;
-            }
+    @media (max-width: 900px) {
+      .nav-inner { gap: 12px; }
+      .nav-links { gap: 3px 9px; }
+      .nav-links a, .nav-links button { font-size: 0.82rem; }
+    }
 
-            body[data-dashboard="trader"] .nav-links {
-                width: 100%;
-                gap: 14px;
-                padding-bottom: 5px;
-            }
+    @media (max-width: 760px) {
+      .nav-inner { padding: 12px 16px; }
+      .brand { font-size: 1.35rem; }
+      .nav-links { display: none; }
+      .menu-btn { display: block; margin-left: auto; }
 
-            body[data-dashboard="trader"] .container {
-                padding-top: 20px;
-            }
+      .container {
+        width: calc(100% - 24px);
+        margin-top: 22px;
+      }
 
-            body[data-dashboard="trader"] section.card {
-                border-radius: 16px;
-            }
+      .card { padding: 17px; }
+      .notice { padding: 11px 13px; }
 
-            body[data-dashboard="trader"] .footer-inner {
-                flex-direction: column;
-                gap: 16px;
-            }
-        }
+      .footer-inner {
+        grid-template-columns: 1fr;
+        gap: 22px;
+        padding: 24px 18px;
+      }
+    }
 
-        @media (prefers-reduced-motion: reduce) {
-            body[data-dashboard="trader"] *,
-            body[data-dashboard="trader"] *::before,
-            body[data-dashboard="trader"] *::after {
-                animation-duration: .01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: .01ms !important;
-                scroll-behavior: auto !important;
-            }
-        }
-    </style>
+    /* Optional existing theme toggle support */
+    body.light {
+      color-scheme: light;
+      --bg: #f6f8fa;
+      --card: #ffffff;
+      --border: #d0d7de;
+      --text: #24292f;
+      --muted: #57606a;
+      --accent: #1a7f37;
+      --link: #0969da;
+    }
+
+    body.light input,
+    body.light select,
+    body.light textarea {
+      background: #ffffff;
+      color: #24292f;
+    }
+  </style>
 </head>
 
 <body data-dashboard="trader">
 
-    <!-- NAVIGATION -->
-    
-<header class="navbar">
+  <header class="navbar">
     <div class="nav-inner">
-        <a class="brand" href="../index.html">GAS-INFO</a>
+      <a class="brand" href="../index.html">GAS-INFO</a>
 
-        <nav id="nav-links" class="nav-links">
-            <a href="../index.html">🏠 Home</a>
-            <a href="../index.html#search">🔎 Search / Explore</a>
-            <a href="../results/all.html">ALL</a>
-            <a href="../results/high-rated.html">HIGH-RATED</a>
-            <a href="../results/others.html">OTHERS</a>
-            <a href="../updates.html">🔔 Updates</a>
-            <a href="../reviews.html">⭐ Rate &amp; Reviews</a>
-            <a href="../customer/login.html">Login / Register</a>
-        </nav>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="../index.html">🏠 Home</a>
+        <a href="../index.html#search">🔎 Search / Explore</a>
+        <a href="../results/all.html">All</a>
+        <a href="../results/high-rated.html">High Rated</a>
+        <a href="../results/others.html">Others</a>
+        <a href="../nearby.html">Nearby</a>
+        <a href="../updates.html">Updates</a>
+        <a href="../reviews.html">Rate & Reviews</a>
+        <a href="../auth/login.html">Login / Register</a>
+        <button type="button" onclick="toggleTheme()">☾ Theme</button>
+      </nav>
 
-        <button
-            class="menu-btn"
-            type="button"
-            onclick="toggleMenu()"
-            aria-label="Toggle navigation">
-            ☰
-        </button>
+      <button
+        class="menu-btn"
+        type="button"
+        aria-label="Toggle navigation"
+        aria-expanded="false"
+        onclick="toggleMenu()"
+      >☰</button>
     </div>
 
-    <div id="mobile-menu" class="mobile-menu"></div>
-</header>
-    
+    <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile navigation">
+      <a href="../index.html">🏠 Home</a>
+      <a href="../index.html#search">🔎 Search / Explore</a>
+      <a href="../results/all.html">All Results</a>
+      <a href="../results/high-rated.html">High Rated</a>
+      <a href="../results/others.html">Others</a>
+      <a href="../nearby.html">Nearby</a>
+      <a href="../updates.html">🔔 Updates</a>
+      <a href="../reviews.html">⭐ Rate & Reviews</a>
+      <a href="../auth/login.html">Login / Register</a>
+      <button type="button" onclick="toggleTheme()">☾ Theme</button>
+    </nav>
+  </header>
 
-    <!-- DASHBOARD -->
-    <main class="container">
+  <main class="container">
 
-        <div class="page-title">
-            <h1>🏪 Trader Dashboard</h1>
-            <p class="muted" id="welcome">Loading account…</p>
-        </div>
+    <div class="page-title">
+      <h1>Trader Dashboard</h1>
+      <p class="muted" id="welcome">Loading account…</p>
+    </div>
 
-        <p id="message" class="notice" aria-live="polite">
-            📦 Keep your stock information accurate. Update it whenever
-            availability changes.
-        </p>
+    <p id="message" class="notice" aria-live="polite">
+      Keep reported stock accurate and update it whenever availability changes.
+    </p>
 
-        <!-- SHOP DETAILS AND STOCK -->
-        <section class="card">
-            <h2>🏬 Shop Details &amp; Stock Update</h2>
+    <section class="card">
+      <h2>Shop Details &amp; Stock Update</h2>
+      <p class="muted">
+        Only shops linked to your account appear here. Pending shops are not
+        publicly listed until approved.
+      </p>
+      <div id="shops">
+        <p class="muted">Loading your shops…</p>
+      </div>
+    </section>
 
-            <p class="muted">
-                Only shops linked to your account appear here.
-                Pending shops are not publicly listed until approved.
-            </p>
+    <section class="card">
+      <h2>Reports &amp; Verification</h2>
+      <p class="muted">
+        Respond to reports about your shop. Responses are sent for admin review;
+        they do not automatically dismiss a report.
+      </p>
+      <div id="traderReports">
+        <p class="muted">Loading reports…</p>
+      </div>
+    </section>
 
-            <div id="shops" aria-live="polite">
-                <p class="muted">Loading your shops…</p>
-            </div>
-        </section>
+    <section class="card">
+      <h2>Customer Reviews</h2>
+      <div id="traderReviews">
+        <p class="muted">Loading reviews…</p>
+      </div>
+    </section>
 
-        <!-- REPORTS -->
-        <section class="card">
-            <h2>🛡️ Reports &amp; Verification</h2>
+    <section class="card">
+      <h2>Notifications</h2>
+      <div id="notifications">
+        <p class="muted">Loading notifications…</p>
+      </div>
+    </section>
 
-            <p class="muted">
-                Respond to reports about your shop. Responses are sent
-                for admin review; they do not automatically dismiss a report.
-            </p>
+    <p class="notice">
+      Stock information is provided by the trader and may change at any time.
+      Please check the latest information before visiting. GAS-INFO does not
+      sell, book, reserve or deliver cylinders.
+    </p>
 
-            <div id="traderReports" aria-live="polite">
-                <p class="muted">Loading reports…</p>
-            </div>
-        </section>
+  </main>
 
-        <!-- CUSTOMER REVIEWS -->
-        <section class="card">
-            <h2>⭐ Customer Reviews</h2>
-
-            <div id="traderReviews" aria-live="polite">
-                <p class="muted">Loading reviews…</p>
-            </div>
-        </section>
-
-        <!-- NOTIFICATIONS -->
-        <section class="card">
-            <h2>🔔 Notifications</h2>
-
-            <div id="notifications" aria-live="polite">
-                <p class="muted">Loading notifications…</p>
-            </div>
-        </section>
-
-        <p class="notice">
-            ℹ️ Stock information is provided by the trader and may change
-            at any time. Please check the latest information before visiting.
-            GAS-INFO does not sell, book, reserve or deliver cylinders.
-        </p>
-
-    </main>
-
-    <!-- FOOTER -->
-    
-<footer>
+  <footer>
     <div class="footer-inner">
-        <div>
-            <h3>GAS-INFO</h3>
-            <p class="muted">
-                Gas cylinder availability information platform.
-                Information is provided by traders and may change
-                at any time.
-            </p>
-        </div>
+      <div>
+        <h3>GAS-INFO</h3>
+        <p class="muted">
+          Gas cylinder availability information platform. Information is
+          provided by traders and may change at any time.
+        </p>
+      </div>
 
-        <div class="footer-links">
-            <h3>Information</h3>
-            <a href="../about.html">About Us</a>
-            <a href="../reviews.html">Rate &amp; Reviews</a>
-            <a href="../updates.html">Updates</a>
-        </div>
+      <div class="footer-links">
+        <h3>Information</h3>
+        <a href="../about.html">About Us</a>
+        <a href="../reviews.html">Rate &amp; Reviews</a>
+        <a href="../updates.html">Updates</a>
+      </div>
 
-        <div class="footer-links">
-            <h3>Legal</h3>
-            <a href="../terms.html">Terms &amp; Penalties</a>
-            <a href="../legal.html">Legal &amp; Compliance</a>
-            <a href="../contact.html">Contact / Report</a>
-            <a href="../privacy.html">🔒 Privacy Policy</a>
-        </div>
+      <div class="footer-links">
+        <h3>Legal &amp; Support</h3>
+        <a href="../terms.html">Terms &amp; Penalties</a>
+        <a href="../legal.html">Legal &amp; Compliance</a>
+        <a href="../contact.html">Contact / Report</a>
+        <a href="../privacy.html">🔒 Privacy Policy</a>
+      </div>
     </div>
-</footer>
-    
+  </footer>
 
-    <!-- EXISTING SCRIPTS: KEEP THESE -->
-    <script src="../js/ui-feedback.js"></script>
-    <script src="../js/dashboard.js"></script>
+  <!-- Keep the existing dashboard and feedback scripts unchanged -->
+  <script src="../js/ui-feedback.js"></script>
+  <script src="../js/dashboard.js"></script>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById("mobile-menu");
+      const button = document.querySelector(".menu-btn");
+      const isOpen = menu.classList.toggle("open");
+      button.setAttribute("aria-expanded", String(isOpen));
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("light");
+    }
+  </script>
 
 </body>
 </html>
