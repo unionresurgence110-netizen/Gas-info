@@ -1,3 +1,4 @@
+// ========== PART 1 START ==========
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -21,6 +22,7 @@ const asyncRoute = fn => (req,res,next) => Promise.resolve(fn(req,res,next)).cat
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
 const resetLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 5, standardHeaders: true, legacyHeaders: false });
 const duplicateCheckLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false });
+const accountActionLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 5, standardHeaders: true, legacyHeaders: false });
 const fail = (res, status, error) => res.status(status).json({ error });
 const text = (v, max=255) => typeof v === 'string' ? v.trim().slice(0,max) : '';
 const required = (obj, fields) => fields.every(k => typeof obj[k] === 'string' && obj[k].trim());
@@ -72,6 +74,66 @@ app.post('/api/auth/login', authLimiter, asyncRoute(async (req,res) => {
 }));
 app.get('/api/auth/me',auth,getActiveUser,(req,res)=>res.json({user:req.user}));
 
+// Upgrade an existing customer account and create its shop atomically.
+app.post('/api/auth/switch-to-trader',accountActionLimiter,auth,getActiveUser,asyncRoute(async(req,res)=>{
+ const password=typeof req.body.password==='string'?req.body.password:'';
+ const b=req.body.shop||req.body;
+ if(req.user.role!=='customer')return fail(res,403,'Only customer accounts can switch to trader.');
+ if(password.length<1||password.length>128)return fail(res,400,'Enter your current account password to confirm this change.');
+ if(!required(b,['shop_name','province','district','municipality','exact_location']) || !Number.isFinite(Number(b.latitude)) || !Number.isFinite(Number(b.longitude)) || Math.abs(Number(b.latitude))>90 || Math.abs(Number(b.longitude))>180) return fail(res,400,'Shop name, location fields, latitude and longitude are required.');
+ const client=await pool.connect();
+ try {
+  await client.query('BEGIN');
+  const current=await client.query('SELECT user_id,password_hash,role FROM users WHERE user_id=$1 FOR UPDATE',[req.user.user_id]);
+  if(!current.rowCount||current.rows[0].role!=='customer'){await client.query('ROLLBACK');return fail(res,409,'This account is no longer a customer account. Please refresh and try again.');}
+  if(!(await bcrypt.compare(password,current.rows[0].password_hash))){await client.query('ROLLBACK');return fail(res,401,'Current password is incorrect.');}
+  const existing=await client.query('SELECT shop_id FROM shops WHERE owner_user_id=$1',[req.user.user_id]);
+  if(existing.rowCount){await client.query('ROLLBACK');return fail(res,409,'A shop is already linked to this account.');}
+  const u=await client.query("UPDATE users SET role='trader',updated_at=NOW() WHERE user_id=$1 RETURNING user_id,username,email,role,account_status,created_at",[req.user.user_id]);
+  const shop=await client.query(`INSERT INTO shops(owner_user_id,shop_name,phone,business_email,province,district,municipality,ward_no,town_village,exact_location,latitude,longitude) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,[req.user.user_id,text(b.shop_name,180),text(b.phone,40)||null,text(b.business_email,254)||null,text(b.province,120),text(b.district,120),text(b.municipality,160),text(b.ward_no,20)||null,text(b.town_village,160)||null,text(b.exact_location,255),Number(b.latitude),Number(b.longitude)]);
+  await client.query('COMMIT');
+  res.status(201).json({user:u.rows[0],token:sign(u.rows[0]),shop:shop.rows[0],message:'Your account is now a trader account. The shop is pending admin approval.'});
+ } catch(e){try{await client.query('ROLLBACK')}catch{};if(e.code==='23505')return fail(res,409,'A shop with these account details may already exist. Check your profile before retrying.');throw e;} finally{client.release();}
+}));
+// ========== PART 1 END ==========
+  
+// ========== PART 2 START ==========
+
+// Permanent account deletion. Admin accounts are intentionally excluded.
+app.post('/api/account/delete',accountActionLimiter,auth,getActiveUser,asyncRoute(async(req,res)=>{
+ const password=typeof req.body.password==='string'?req.body.password:'';
+ const confirmation=text(req.body.confirmation,20);
+ if(req.user.role==='admin')return fail(res,403,'Admin accounts cannot be deleted through this feature.');
+ if(confirmation!=='DELETE')return fail(res,400,'Type DELETE to confirm permanent account deletion.');
+ if(!password)return fail(res,400,'Enter your current password to confirm deletion.');
+ const client=await pool.connect();
+ try{
+  await client.query('BEGIN');
+  const current=await client.query('SELECT user_id,password_hash,role FROM users WHERE user_id=$1 FOR UPDATE',[req.user.user_id]);
+  if(!current.rowCount){await client.query('ROLLBACK');return fail(res,404,'Account not found.');}
+  if(current.rows[0].role==='admin'){await client.query('ROLLBACK');return fail(res,403,'Admin accounts cannot be deleted through this feature.');}
+  if(!(await bcrypt.compare(password,current.rows[0].password_hash))){await client.query('ROLLBACK');return fail(res,401,'Password is incorrect. Account was not deleted.');}
+  const uid=req.user.user_id;
+  // Remove dependent records in FK-safe order. Shop deletion cascades shop-owned stock,
+  // history, images, reviews, reports, and report-verification records.
+  await client.query('DELETE FROM report_verifications WHERE requested_by=$1',[uid]);
+  await client.query('DELETE FROM reports WHERE reported_by=$1',[uid]);
+  await client.query('DELETE FROM reviews WHERE user_id=$1',[uid]);
+  await client.query('DELETE FROM website_reviews WHERE user_id=$1',[uid]);
+  await client.query('DELETE FROM strikes WHERE user_id=$1 OR issued_by=$1',[uid]);
+  await client.query('DELETE FROM stock_update_history WHERE updated_by=$1',[uid]);
+  await client.query('DELETE FROM stock WHERE updated_by=$1',[uid]);
+  await client.query('DELETE FROM shops WHERE owner_user_id=$1',[uid]);
+  await client.query('DELETE FROM notifications WHERE user_id=$1',[uid]);
+  await client.query('DELETE FROM notification_events WHERE user_id=$1',[uid]);
+  await client.query('DELETE FROM email_verification_tokens WHERE user_id=$1',[uid]);
+  const gone=await client.query('DELETE FROM users WHERE user_id=$1 RETURNING user_id',[uid]);
+  if(!gone.rowCount)throw new Error('Account deletion did not complete.');
+  await client.query('COMMIT');
+  res.json({message:'Your account and associated account data were permanently deleted.'});
+ }catch(e){try{await client.query('ROLLBACK')}catch{};throw e;}finally{client.release();}
+}));
+
 app.get('/api/locations', asyncRoute(async (req,res) => {
  const {province,district,municipality}=req.query;
  const r=await pool.query(`SELECT DISTINCT province,district,municipality,ward_no,town_village,exact_location FROM locations WHERE status='active' AND ($1::text IS NULL OR province=$1) AND ($2::text IS NULL OR district=$2) AND ($3::text IS NULL OR municipality=$3) ORDER BY province,district,municipality,ward_no,town_village,exact_location LIMIT 1000`,[province||null,district||null,municipality||null]);
@@ -119,17 +181,19 @@ app.get('/api/shops/:shopId/reviews',asyncRoute(async(req,res)=>{const r=await p
 app.post('/api/shops/:shopId/reports',auth,getActiveUser,roles('customer'),asyncRoute(async(req,res)=>{
  if(req.user.role==='admin')return fail(res,403,'Admin accounts cannot submit customer reports');
  const rawType=text(req.body.report_type,40), desc=text(req.body.description,3000);
- const reportTypes={stock_mismatch:'stock_mismatch',wrong_quantity:'stock_mismatch',wrong_cylinder:'stock_mismatch',incorrect_shop_info:'incorrect_shop_info',other:'other_information_issue',other_information_issue:'other_information_issue'};
- const type=reportTypes[rawType];
- if(!type||!desc)return fail(res,400,'Valid report type and description are required');
- const categoryNote=rawType==='wrong_quantity'?'[Specific issue: reported quantity is incorrect]\n':rawType==='wrong_cylinder'?'[Specific issue: cylinder type is incorrect]\n':'';
- const fullDescription=(categoryNote+desc).slice(0,3000);
- const shop=await pool.query("SELECT shop_id,owner_user_id FROM shops WHERE shop_id=$1 AND shop_status='active'",[req.params.shopId]); if(!shop.rowCount)return fail(res,404,'Active shop not found');
- const r=await pool.query('INSERT INTO reports(shop_id,reported_by,report_type,description) VALUES($1,$2,$3,$4) RETURNING *',[req.params.shopId,req.user.user_id,type,fullDescription]); await pool.query("INSERT INTO notifications(user_id,type,title,message) VALUES($1,'shop_report','New information report','A customer reported an information issue for your shop.')",[shop.rows[0].owner_user_id]); res.status(201).json({report:r.rows[0]});
-}));
+// ========== PART 2 END ==========
+   
+// ========== PART 3 START ==========
+  const reportTypes={stock_mismatch:'stock_mismatch',wrong_quantity:'stock_mismatch',wrong_cylinder:'stock_mismatch',incorrect_shop_info:'incorrect_shop_info',other:'other_information_issue',other_information_issue:'other_information_issue'};
+  const type=reportTypes[rawType];
+  if(!type||!desc)return fail(res,400,'Valid report type and description are required');
+  const categoryNote=rawType==='wrong_quantity'?'[Specific issue: reported quantity is incorrect]\n':rawType==='wrong_cylinder'?'[Specific issue: cylinder type is incorrect]\n':'';
+  const fullDescription=(categoryNote+desc).slice(0,3000);
+  const shop=await pool.query("SELECT shop_id,owner_user_id FROM shops WHERE shop_id=$1 AND shop_status='active'",[req.params.shopId]); if(!shop.rowCount)return fail(res,404,'Active shop not found');
+  const r=await pool.query('INSERT INTO reports(shop_id,reported_by,report_type,description) VALUES($1,$2,$3,$4) RETURNING *',[req.params.shopId,req.user.user_id,type,fullDescription]); await pool.query("INSERT INTO notifications(user_id,type,title,message) VALUES($1,'shop_report','New information report','A customer reported an information issue for your shop.')",[shop.rows[0].owner_user_id]); res.status(201).json({report:r.rows[0]});
+ }));
 app.get('/api/notifications',auth,getActiveUser,asyncRoute(async(req,res)=>{const r=await pool.query('SELECT * FROM notifications WHERE user_id=$1 ORDER BY created_at DESC LIMIT 100',[req.user.user_id]);res.json({notifications:r.rows});}));
 app.patch('/api/notifications/:id/read',auth,getActiveUser,asyncRoute(async(req,res)=>{const r=await pool.query('UPDATE notifications SET is_read=TRUE WHERE notification_id=$1 AND user_id=$2 RETURNING *',[req.params.id,req.user.user_id]);if(!r.rowCount)return fail(res,404,'Notification not found');res.json({notification:r.rows[0]});}));
-
 
 // Profile and dashboard endpoints. Every private query is scoped to the authenticated user.
 app.patch('/api/profile',auth,getActiveUser,asyncRoute(async(req,res)=>{
@@ -169,16 +233,15 @@ app.patch('/api/admin/shops/:id/status',auth,getActiveUser,roles('admin'),asyncR
  const status=text(req.body.status,20),reason=text(req.body.reason,1000);if(!['active','rejected','suspended','closed','pending'].includes(status)||!reason)return fail(res,400,'Valid shop status and reason are required');
  const client=await pool.connect();try{await client.query('BEGIN');const r=await client.query('UPDATE shops SET shop_status=$1,updated_at=NOW() WHERE shop_id=$2 RETURNING shop_id,owner_user_id,shop_name,shop_status',[status,req.params.id]);if(!r.rowCount){await client.query('ROLLBACK');return fail(res,404,'Shop not found');}await client.query('INSERT INTO moderation_logs(admin_id,target_user_id,target_shop_id,action,reason) VALUES($1,$2,$3,$4,$5)',[req.user.user_id,r.rows[0].owner_user_id,r.rows[0].shop_id,'shop_status:'+status,reason]);await client.query('INSERT INTO notifications(user_id,type,title,message) VALUES($1,\'shop_status\',\'Shop listing status updated\',$2)',[r.rows[0].owner_user_id,`Your shop "${r.rows[0].shop_name}" status is now ${status}. Reason: ${reason}`]);await client.query('COMMIT');res.json({shop:r.rows[0]});}catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
 }));
-app.get('/api/admin/reports',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{const r=await pool.query(`SELECT rp.*,s.shop_name,u.username AS reporter_username,owner.username AS trader_username FROM reports rp JOIN shops s ON s.shop_id=rp.shop_id JOIN users u ON u.user_id=rp.reported_by JOIN users owner ON owner.user_id=s.owner_user_id ORDER BY CASE rp.status WHEN 'open' THEN 0 WHEN 'trader_response_requested' THEN 1 WHEN 'under_review' THEN 2 ELSE 3 END,rp.created_at DESC LIMIT 300`);res.json({reports:r.rows});}));
-app.patch('/api/admin/reports/:id/resolve',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{
- const status=text(req.body.status,30),reason=text(req.body.reason,1500),result=text(req.body.result,30);if(!['resolved','dismissed'].includes(status)||!reason||!['valid','false_report','inconclusive'].includes(result))return fail(res,400,'Choose resolved/dismissed, a reason, and result valid/false_report/inconclusive');
+app.get('/api/admin/reports',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{const r=await pool.query(`SELECT rp.*,s.shop_name,u.username AS reporter_username FROM reports rp JOIN shops s ON s.shop_id=rp.shop_id JOIN users u ON u.user_id=rp.reported_by ORDER BY CASE rp.status WHEN 'open' THEN 0 WHEN 'trader_response_requested' THEN 1 WHEN 'under_review' THEN 2 ELSE 3 END,rp.created_at DESC LIMIT 300`);res.json({reports:r.rows});}));
+app.patch('/api/admin/reports/:id/status',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{
+ const status=text(req.body.status,20),reason=text(req.body.reason,1000),result=text(req.body.result,30);if(!['resolved','dismissed'].includes(status)||!reason||!['valid','false_report','inconclusive'].includes(result))return fail(res,400,'Choose resolved/dismissed, a reason, and result valid/false_report/inconclusive');
  const client=await pool.connect();try{await client.query('BEGIN');const r=await client.query('UPDATE reports SET status=$1,updated_at=NOW(),resolved_at=NOW() WHERE report_id=$2 RETURNING *',[status,req.params.id]);if(!r.rowCount){await client.query('ROLLBACK');return fail(res,404,'Report not found');}await client.query(`INSERT INTO report_verifications(report_id,requested_by,status,admin_note,result,resolved_at) VALUES($1,$2,'resolved',$3,$4,NOW())`,[req.params.id,req.user.user_id,reason,result]);await client.query('INSERT INTO moderation_logs(admin_id,action,reason,related_report_id,target_shop_id) VALUES($1,$2,$3,$4,$5)',[req.user.user_id,'report:'+status+':'+result,reason,req.params.id,r.rows[0].shop_id]);await client.query('COMMIT');res.json({report:r.rows[0]});}catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
 }));
 app.get('/api/admin/reviews',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{const r=await pool.query(`SELECT rv.review_id,rv.shop_id,rv.user_id,rv.rating,rv.review_text,rv.status,rv.created_at,u.username,s.shop_name FROM reviews rv JOIN users u ON u.user_id=rv.user_id JOIN shops s ON s.shop_id=rv.shop_id ORDER BY rv.created_at DESC LIMIT 300`);res.json({reviews:r.rows});}));
 app.patch('/api/admin/reviews/:id/status',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{const status=text(req.body.status,20),reason=text(req.body.reason,1000);if(!['active','hidden','removed'].includes(status)||!reason)return fail(res,400,'Valid review status and reason are required');const r=await pool.query('UPDATE reviews SET status=$1,updated_at=NOW() WHERE review_id=$2 RETURNING review_id,status,shop_id,user_id',[status,req.params.id]);if(!r.rowCount)return fail(res,404,'Review not found');await pool.query('INSERT INTO moderation_logs(admin_id,target_user_id,target_shop_id,action,reason) VALUES($1,$2,$3,$4,$5)',[req.user.user_id,r.rows[0].user_id,r.rows[0].shop_id,'review_status:'+status,reason]);res.json({review:r.rows[0]});}));
 app.post('/api/admin/strikes',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{const userId=text(req.body.user_id,80),reason=text(req.body.reason,1500),expires=req.body.expires_at||null;if(!userId||!reason)return fail(res,400,'User and reason are required');const r=await pool.query('INSERT INTO strikes(user_id,reason,related_report_id,issued_by,expires_at) VALUES($1,$2,$3,$4,$5) RETURNING *',[userId,reason,req.body.related_report_id||null,req.user.user_id,expires]);await pool.query('INSERT INTO moderation_logs(admin_id,target_user_id,action,reason,related_report_id) VALUES($1,$2,\'strike_issued\',$3,$4)',[req.user.user_id,userId,reason,req.body.related_report_id||null]);await pool.query('INSERT INTO notifications(user_id,type,title,message) VALUES($1,\'strike\',\'A moderation strike was issued\',$2)',[userId,reason]);res.status(201).json({strike:r.rows[0]});}));
 app.get('/api/admin/logs',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{const r=await pool.query(`SELECT m.*,a.username AS admin_username,u.username AS target_username,s.shop_name FROM moderation_logs m JOIN users a ON a.user_id=m.admin_id LEFT JOIN users u ON u.user_id=m.target_user_id LEFT JOIN shops s ON s.shop_id=m.target_shop_id ORDER BY m.created_at DESC LIMIT 300`);res.json({logs:r.rows});}));
-
 
 // Password recovery: requires SMTP environment variables; never returns raw codes or reveals whether an email exists.
 function mailTransport(){
@@ -213,3 +276,6 @@ app.use((err,req,res,next)=>{console.error(err); if(err.code==='23503')return fa
 const port=Number(process.env.PORT)||3000;
 if(!process.env.JWT_SECRET || process.env.JWT_SECRET.length<32) console.warn('WARNING: Set JWT_SECRET to a random secret of at least 32 characters.');
 app.listen(port,'0.0.0.0',()=>console.log(`GAS-INFO API listening on ${port}`));
+// ========== PART 3 END ==========
+                                                                    
+ 
