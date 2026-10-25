@@ -86,35 +86,6 @@ app.get('/api/search', asyncRoute(async (req,res) => {
 }));
 
 app.post('/api/trader/shops/check-duplicate',duplicateCheckLimiter,asyncRoute(async(req,res)=>{const name=text(req.body.shop_name,180),municipality=text(req.body.municipality,160),phone=text(req.body.phone,40),businessEmail=text(req.body.business_email,254).toLowerCase();if(!name||!municipality)return fail(res,400,'Shop name and municipality are required');const r=await pool.query(`SELECT EXISTS(SELECT 1 FROM shops WHERE shop_status IN ('active','pending','suspended') AND ((LOWER(shop_name)=LOWER($1) AND LOWER(municipality)=LOWER($2)) OR ($3<>'' AND phone=$3) OR ($4<>'' AND LOWER(COALESCE(business_email,''))=LOWER($4)))) AS possible_duplicate`,[name,municipality,phone,businessEmail]);res.json({possibleDuplicate:r.rows[0].possible_duplicate,message:r.rows[0].possible_duplicate?'You may have already registered this shop. Please check your existing account before creating a new listing.':'No strong duplicate match found.'});}));
-// Upgrade an existing customer account to trader while creating the first shop atomically.
-app.post('/api/auth/upgrade-to-trader',auth,getActiveUser,resetLimiter,asyncRoute(async(req,res)=>{
- const b=req.body||{};
- const password=typeof b.password==='string'?b.password:'';
- if(req.user.role!=='customer') return fail(res,409,'Only a customer account can be switched to trader.');
- if(!password) return fail(res,400,'Enter your current account password to confirm the switch.');
- if(!required(b,['shop_name','province','district','municipality','exact_location','ward_no']) || !Number.isFinite(Number(b.latitude)) || !Number.isFinite(Number(b.longitude)) || Math.abs(Number(b.latitude))>90 || Math.abs(Number(b.longitude))>180) return fail(res,400,'Shop name, complete address, ward, and valid map coordinates are required.');
- const client=await pool.connect();
- try {
-  await client.query('BEGIN');
-  const account=await client.query('SELECT user_id,username,email,password_hash,role,account_status,created_at FROM users WHERE user_id=$1 FOR UPDATE',[req.user.user_id]);
-  if(!account.rowCount){await client.query('ROLLBACK');return fail(res,404,'Account not found.');}
-  if(account.rows[0].role!=='customer'){await client.query('ROLLBACK');return fail(res,409,'This account is no longer a customer account. Please log in again.');}
-  if(!['active','warning'].includes(account.rows[0].account_status)){await client.query('ROLLBACK');return fail(res,403,'Account is unavailable.');}
-  if(!(await bcrypt.compare(password,account.rows[0].password_hash))){await client.query('ROLLBACK');return fail(res,401,'Current password is incorrect. Your account was not changed.');}
-  const duplicate=await client.query(`SELECT EXISTS(SELECT 1 FROM shops WHERE shop_status IN ('active','pending','suspended') AND ((LOWER(shop_name)=LOWER($1) AND LOWER(municipality)=LOWER($2)) OR ($3<>'' AND phone=$3) OR ($4<>'' AND LOWER(COALESCE(business_email,''))=LOWER($4)))) AS possible_duplicate`,[text(b.shop_name,180),text(b.municipality,160),text(b.phone,40),text(b.business_email,254).toLowerCase()]);
-  if(duplicate.rows[0].possible_duplicate && b.confirm_possible_duplicate!==true){await client.query('ROLLBACK');return fail(res,409,'A similar shop may already be registered. Check the details and confirm you still want to continue.');}
-  const userUpdate=await client.query("UPDATE users SET role='trader',updated_at=NOW() WHERE user_id=$1 RETURNING user_id,username,email,role,account_status,created_at",[req.user.user_id]);
-  const u=userUpdate.rows[0];
-  const shop=await client.query(`INSERT INTO shops(owner_user_id,shop_name,phone,business_email,province,district,municipality,ward_no,town_village,exact_location,latitude,longitude) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,[u.user_id,text(b.shop_name,180),text(b.phone,40)||null,text(b.business_email,254).toLowerCase()||null,text(b.province,120),text(b.district,120),text(b.municipality,160),text(b.ward_no,20),text(b.town_village,160)||null,text(b.exact_location,255),Number(b.latitude),Number(b.longitude)]);
-  await client.query('COMMIT');
-  res.status(201).json({user:u,token:sign(u),shop:shop.rows[0],message:'Your account is now a trader account. Your shop has been submitted for approval.'});
- } catch(e) {
-  try{await client.query('ROLLBACK')}catch{}
-  if(e.code==='23505') return fail(res,409,'This account already has a shop or one of the details is already in use. No changes were saved.');
-  throw e;
- } finally {client.release();}
-}));
-
 app.post('/api/trader/shops',auth,getActiveUser,roles('trader'),asyncRoute(async(req,res)=>{
  const b=req.body;
  if(!required(b,['shop_name','province','district','municipality','exact_location']) || !Number.isFinite(Number(b.latitude)) || !Number.isFinite(Number(b.longitude)) || Math.abs(Number(b.latitude))>90 || Math.abs(Number(b.longitude))>180) return fail(res,400,'Shop name, location fields, latitude and longitude are required');
@@ -159,39 +130,6 @@ app.post('/api/shops/:shopId/reports',auth,getActiveUser,roles('customer'),async
 app.get('/api/notifications',auth,getActiveUser,asyncRoute(async(req,res)=>{const r=await pool.query('SELECT * FROM notifications WHERE user_id=$1 ORDER BY created_at DESC LIMIT 100',[req.user.user_id]);res.json({notifications:r.rows});}));
 app.patch('/api/notifications/:id/read',auth,getActiveUser,asyncRoute(async(req,res)=>{const r=await pool.query('UPDATE notifications SET is_read=TRUE WHERE notification_id=$1 AND user_id=$2 RETURNING *',[req.params.id,req.user.user_id]);if(!r.rowCount)return fail(res,404,'Notification not found');res.json({notification:r.rows[0]});}));
 
-
-// Permanent account deletion. Admin deletion remains owner-managed and is deliberately excluded.
-app.delete('/api/auth/account', auth, resetLimiter, asyncRoute(async (req,res)=>{
- const password=typeof req.body?.password==='string'?req.body.password:'';
- if(!password) return fail(res,400,'Enter your current password to confirm account deletion');
- const client=await pool.connect();
- try {
-  await client.query('BEGIN');
-  const found=await client.query('SELECT user_id,role,password_hash FROM users WHERE user_id=$1 FOR UPDATE',[req.auth.sub]);
-  if(!found.rowCount){await client.query('ROLLBACK');return fail(res,404,'Account not found');}
-  const account=found.rows[0];
-  if(account.role==='admin'){await client.query('ROLLBACK');return fail(res,403,'Admin accounts cannot be deleted through this feature. Contact the site owner.');}
-  if(!(await bcrypt.compare(password,account.password_hash))){await client.query('ROLLBACK');return fail(res,401,'Password is incorrect. Account was not deleted.');}
-  const id=account.user_id;
-  // Remove records authored by the account before deleting any owned shop.
-  await client.query('DELETE FROM report_verifications WHERE requested_by=$1',[id]);
-  await client.query('DELETE FROM reports WHERE reported_by=$1',[id]);
-  await client.query('DELETE FROM reviews WHERE user_id=$1',[id]);
-  await client.query('DELETE FROM website_reviews WHERE user_id=$1',[id]);
-  await client.query('DELETE FROM strikes WHERE user_id=$1',[id]);
-  // Deleting a trader's shop cascades its stock, stock history, images, shop reviews and shop reports.
-  await client.query('DELETE FROM shops WHERE owner_user_id=$1',[id]);
-  // User-targeted moderation logs use ON DELETE SET NULL, preserving audit events without the identity.
-  const deleted=await client.query('DELETE FROM users WHERE user_id=$1 RETURNING user_id',[id]);
-  if(!deleted.rowCount) throw new Error('Account deletion did not remove the user record');
-  await client.query('COMMIT');
-  res.json({ok:true,message:'Account permanently deleted.'});
- } catch(e) {
-  try { await client.query('ROLLBACK'); } catch {}
-  if(e.code==='23503') return fail(res,409,'Some account-related records are still linked and prevented deletion. No changes were saved; contact the site owner for help.');
-  throw e;
- } finally { client.release(); }
-}));
 
 // Profile and dashboard endpoints. Every private query is scoped to the authenticated user.
 app.patch('/api/profile',auth,getActiveUser,asyncRoute(async(req,res)=>{
