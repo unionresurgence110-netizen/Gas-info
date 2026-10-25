@@ -56,8 +56,8 @@
       );
     }
 
-    sessionStorage.setItem('gasInfoToken', data.token);
-    sessionStorage.setItem('gasInfoUser', JSON.stringify(data.user));
+    localStorage.setItem('gasInfoToken', data.token);
+    localStorage.setItem('gasInfoUser', JSON.stringify(data.user));
   }
 
   function roleHome(role) {
@@ -86,6 +86,31 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    // If a signed-in customer opened the trader form from their profile, reuse that account.
+    const traderForm = $('traderRegisterForm');
+    let upgradingCustomer = false;
+    if (traderForm && new URLSearchParams(location.search).get('upgrade') === '1') {
+      try {
+        const savedUser = JSON.parse(localStorage.getItem('gasInfoUser') || 'null');
+        const savedToken = localStorage.getItem('gasInfoToken');
+        if (savedToken && savedUser?.role === 'customer') {
+          upgradingCustomer = true;
+          const username = $('username'), email = $('email'), confirmPassword = $('confirmPassword');
+          if (username) { username.value = savedUser.username || ''; username.readOnly = true; }
+          if (email) { email.value = savedUser.email || ''; email.readOnly = true; }
+          const passwordLabel = traderForm.querySelector('label[for="password"]');
+          if (passwordLabel) passwordLabel.innerHTML = 'Current account password <span class="required">*</span>';
+          if ($('password')) { $('password').placeholder = 'Enter your current account password'; $('password').autocomplete = 'current-password'; }
+          if (confirmPassword) { confirmPassword.required = false; confirmPassword.closest('.form-group')?.setAttribute('hidden', ''); }
+          const heading = document.querySelector('h1');
+          if (heading) heading.textContent = 'Switch to Trader';
+          const intro = document.querySelector('.page-title p, .form-intro, .muted');
+          if (intro) intro.textContent = 'Complete your shop details to upgrade your existing customer account. Your account details and password will stay the same.';
+          const submit = traderForm.querySelector('[type="submit"]');
+          if (submit) submit.textContent = 'Switch to Trader & Submit Shop';
+        }
+      } catch { /* Keep the standard registration flow if saved session data is invalid. */ }
+    }
     // LOGIN
     const login = $('loginForm');
 
@@ -166,12 +191,15 @@
 
         const password = $('password').value;
 
-        if (password !== $('confirmPassword').value) {
-          return message('Passwords do not match.');
-        }
-
-        if (password.length < 8) {
-          return message('Password must be at least 8 characters.');
+        if (upgradingCustomer) {
+          if (!password) return message('Enter your current account password to confirm the switch.', 'error');
+        } else {
+          if (password !== $('confirmPassword').value) {
+            return message('Passwords do not match.', 'error');
+          }
+          if (password.length < 8) {
+            return message('Password must be at least 8 characters.', 'error');
+          }
         }
 
         if (!$('terms').checked) {
@@ -220,42 +248,53 @@
             return;
           }
 
-          setBusy(trader, true, 'Creating trader account…');
+          setBusy(trader, true, upgradingCustomer ? 'Switching account…' : 'Creating trader account…');
+
+          if (upgradingCustomer) {
+            const token = localStorage.getItem('gasInfoToken');
+            const sendUpgrade = async confirmDuplicate => request('/api/auth/upgrade-to-trader', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` },
+              body: JSON.stringify({
+                password,
+                shop_name: $('shopName').value.trim(),
+                phone: $('phone').value.trim(),
+                business_email: $('businessEmail').value.trim(),
+                province, district, municipality, ward_no: ward,
+                town_village: $('townVillage').value.trim(),
+                exact_location: $('exactLocation').value.trim(),
+                latitude: $('latitude').value,
+                longitude: $('longitude').value,
+                confirm_possible_duplicate: confirmDuplicate
+              })
+            });
+            let upgraded;
+            try { upgraded = await sendUpgrade(false); }
+            catch (err) {
+              if (err.message.includes('similar shop may already be registered')) {
+                const confirmed = await (window.gasInfoConfirm
+                  ? window.gasInfoConfirm(err.message + '\n\nIf you have checked and this is your shop, continue?')
+                  : Promise.resolve(window.confirm(err.message + '\n\nIf you have checked and this is your shop, continue?')));
+                if (!confirmed) return;
+                upgraded = await sendUpgrade(true);
+              } else throw err;
+            }
+            saveSession(upgraded);
+            window.location.href = '../trader/dashboard.html';
+            return;
+          }
 
           const authData = await request('/api/auth/register', {
             method: 'POST',
-            body: JSON.stringify({
-              username: $('username').value.trim(),
-              email: $('email').value.trim(),
-              password,
-              role: 'trader'
-            })
+            body: JSON.stringify({ username: $('username').value.trim(), email: $('email').value.trim(), password, role: 'trader' })
           });
-
           accountCreated = true;
           saveSession(authData);
-
-          const shopData = await request('/api/trader/shops', {
+          await request('/api/trader/shops', {
             method: 'POST',
-            headers: {
-              Authorization: `Bearer ${authData.token}`
-            },
-            body: JSON.stringify({
-              shop_name: $('shopName').value.trim(),
-              phone: $('phone').value.trim(),
-              business_email: $('businessEmail').value.trim(),
-              province,
-              district,
-              municipality,
-              ward_no: ward,
-              town_village: $('townVillage').value.trim(),
-              exact_location: $('exactLocation').value.trim(),
-              latitude: $('latitude').value,
-              longitude: $('longitude').value
-            })
+            headers: { Authorization: `Bearer ${authData.token}` },
+            body: JSON.stringify({ shop_name: $('shopName').value.trim(), phone: $('phone').value.trim(), business_email: $('businessEmail').value.trim(), province, district, municipality, ward_no: ward, town_village: $('townVillage').value.trim(), exact_location: $('exactLocation').value.trim(), latitude: $('latitude').value, longitude: $('longitude').value })
           });
-
-          // The destination dashboard shows the shop's pending status.
           window.location.href = '../trader/dashboard.html';
         } catch (err) {
           if (accountCreated) {
