@@ -1,3 +1,5 @@
+
+// ===== PART 1 START =====
 (() => {
   const API = "https://gas-info-api.onrender.com";
   const $ = id => document.getElementById(id);
@@ -10,7 +12,7 @@
     "'": "&#39;"
   })[c]);
 
-  const getToken = () => sessionStorage.getItem("gasInfoToken") || "";
+  const getToken = () => localStorage.getItem("gasInfoToken") || "";
 
   const inResultsFolder = () =>
     location.pathname.split("/").includes("results");
@@ -102,6 +104,10 @@
       </article>
     `;
   }
+
+// ===== PART 1 END — PART 2 CONTINUES BELOW =====
+ 
+// ===== PART 2 START =====
 
   // Create the report popup when it is first needed.
   function ensureReportModal() {
@@ -320,6 +326,10 @@
     $("report-type").focus();
   }
 
+// ===== PART 2 END — PART 3 CONTINUES BELOW =====
+      
+// ===== PART 3 START =====
+
   function openReviewModal(shopId, shopName) {
     let modal = $("gas-review-modal");
     if (!modal) {
@@ -524,6 +534,9 @@
     );
   }
 
+// ===== PART 3 END — PART 4 CONTINUES BELOW =====
+          // ===== PART 4 START =====
+
   async function loadLocations() {
     if (!$("province")) return;
 
@@ -671,7 +684,7 @@
           return;
         }
 
-        sessionStorage.setItem(
+        localStorage.setItem(
           "gasInfoLastSearch",
           JSON.stringify(filters)
         );
@@ -702,7 +715,7 @@
 
       try {
         filters = JSON.parse(
-          sessionStorage.getItem("gasInfoLastSearch") || "{}"
+          localStorage.getItem("gasInfoLastSearch") || "{}"
         );
       } catch {
         filters = {};
@@ -718,5 +731,6 @@
 
       search(filters, root, kind);
     }
-  });
-})();
+  })();
+
+// ===== PART 4 END =====    
