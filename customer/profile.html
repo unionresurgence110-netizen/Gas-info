@@ -1,2 +1,123 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Customer Profile | GAS-INFO</title><link rel="stylesheet" href="../css/style.css"></head><body data-dashboard="customer"><div data-gi-header></div><main class="container"><div class="page-title"><h1>Customer Profile</h1><p class="muted" id="welcome">Loading account…</p></div><p id="message" class="notice" aria-live="polite">Your account details and reviews are private to your account.</p><section class="card"><h2>Account Settings</h2><form id="profileForm"><div class="grid"><div><label for="username">Username</label><input id="username" name="username" minlength="3" maxlength="50" required></div><div><label for="email">Email</label><input id="email" name="email" type="email" maxlength="254" required></div></div><button class="btn" type="submit">Save profile</button></form></section><section class="card"><h2>My Shop Reviews</h2><div id="myReviews"><p class="muted">Loading reviews…</p></div></section><section class="card"><h2>Notifications</h2><div id="notifications"><p class="muted">Loading notifications…</p></div></section><p class="notice">GAS-INFO provides availability information only. Stock is trader-reported and may change. No purchase, booking, delivery or payment is handled here.</p></main><div data-gi-footer></div><script src="../js/ui-feedback.js"></script><script src="../js/dashboard.js"></script><script src="../js/common-layout.js"></script>
-</body></html>
+<!-- ========== PART 1 START ========== -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Customer Profile | GAS-INFO</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body data-dashboard="customer">
+  <div data-gi-header></div>
+  <main class="container">
+    <div class="page-title">
+      <h1>Customer Profile</h1>
+      <p class="muted" id="welcome">Loading account…</p>
+    </div>
+
+    <p id="message" class="notice" aria-live="polite">
+      Your account details and reviews are private to your account.
+    </p>
+
+    <section class="card">
+      <h2>Account Settings</h2>
+      <form id="profileForm">
+        <div class="grid">
+          <div>
+            <label for="username">Username</label>
+            <input id="username" name="username"
+              minlength="3" maxlength="50" required>
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input id="email" name="email"
+              type="email" maxlength="254" required>
+          </div>
+        </div>
+        <button class="btn" type="submit">Save profile</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Become a Trader</h2>
+      <p class="muted">
+        Use this same account to register your shop. Your customer
+        account and its existing reviews are retained; your role changes
+        to Trader after the shop form is submitted successfully.
+      </p>
+      <a class="btn" href="../auth/trader-register.html?switch=1">
+        Switch to Trader
+      </a>
+    </section>
+
+    <!-- ========== PART 1 END ========== -->
+    <!-- ========== PART 2 START ========== -->
+        <section class="card" id="deleteAccountCard">
+      <h2>Delete Account / Delete Everything</h2>
+      <p class="muted">
+        This is permanent. It deletes your account, shop (if any),
+        stock and stock history, your reviews and reports, website
+        reviews, notifications, and account-linked records.
+        This action cannot be undone.
+      </p>
+
+      <button class="btn secondary" type="button" id="beginDelete">
+        Continue to deletion
+      </button>
+
+      <form id="deleteAccountForm" hidden>
+        <p class="notice error">
+          Final confirmation: permanent deletion cannot be reversed.
+        </p>
+
+        <label for="deletePassword">Current account password</label>
+        <input id="deletePassword" name="password" type="password"
+          autocomplete="current-password" required>
+
+        <label for="deleteConfirmation">Type DELETE to confirm</label>
+        <input id="deleteConfirmation" name="confirmation"
+          required pattern="DELETE" autocomplete="off">
+
+        <div class="grid">
+          <button class="btn secondary" type="button" id="cancelDelete">
+            Cancel
+          </button>
+          <button class="btn" type="submit">
+            Permanently delete my account
+          </button>
+        </div>
+
+        <p id="deleteStatus" class="notice" role="status"
+          aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>My Shop Reviews</h2>
+      <div id="myReviews">
+        <p class="muted">Loading reviews…</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Notifications</h2>
+      <div id="notifications">
+        <p class="muted">Loading notifications…</p>
+      </div>
+    </section>
+
+    <p class="notice">
+      GAS-INFO provides availability information only. Stock is
+      trader-reported and may change. No purchase, booking, delivery
+      or payment is handled here.
+    </p>
+  </main>
+
+  <div data-gi-footer></div>
+
+  <script src="../js/ui-feedback.js"></script>
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/common-layout.js"></script>
+</body>
+</html>
+<!-- ========== PART 2 END ========== -->
