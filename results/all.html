@@ -96,15 +96,7 @@
 <body data-result-kind="all">
 
   <!-- Navigation -->
-  <header class="navbar">
-    <div class="nav-inner">
-      <a class="brand" href="../index.html">GAS-INFO</a>
-      <nav id="nav-links" class="nav-links"></nav>
-      <button class="menu-btn" onclick="toggleMenu()"
-              aria-label="Toggle navigation">☰</button>
-    </div>
-    <div id="mobile-menu" class="mobile-menu"></div>
-  </header>
+  <div data-gi-header></div>
 
   <main class="container">
 
@@ -168,37 +160,11 @@
   </main>
 
   <!-- Footer matching the homepage -->
-  <footer>
-    <div class="footer-inner">
-
-      <div>
-        <h3>GAS-INFO</h3>
-        <p class="muted">
-          Gas cylinder availability information platform.
-          Information is provided by traders and may change at any time.
-        </p>
-      </div>
-
-      <div class="footer-links">
-        <h3>Information</h3>
-        <a href="../about.html">About Us</a>
-        <a href="../reviews.html">Rate &amp; Reviews</a>
-        <a href="../updates.html">Updates</a>
-      </div>
-
-      <div class="footer-links">
-        <h3>Legal</h3>
-        <a href="../terms.html">Terms &amp; Penalties</a>
-        <a href="../legal.html">Legal &amp; Compliance</a>
-        <a href="../privacy.html">🔒 Privacy Policy</a>
-        <a href="../contact.html">Contact / Report</a>
-      </div>
-
-    </div>
-  </footer>
+  <div data-gi-footer></div>
 
   <script src="../js/script.js"></script>
   <script src="../js/ui-feedback.js"></script>
   <script src="../js/public-api.js"></script>
+<script src="../js/common-layout.js"></script>
 </body>
 </html>
