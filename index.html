@@ -1,11 +1,10 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GAS-INFO | Home</title>
-<link href="css/style.css" rel="stylesheet"/>
+<link rel="stylesheet" href="css/style.css">
 <style>
 /* INDEX-ONLY FIXES — existing design preserved */
 .hero-banner{
@@ -28,103 +27,123 @@
 }
 </style>
 </head>
+
 <body>
-<header class="navbar site-shell-header">
-<div class="nav-inner">
-<a class="brand" href="index.html">GAS-INFO</a>
-<nav aria-label="Main navigation" class="nav-links" id="nav-links"></nav>
-<button aria-controls="mobile-menu" aria-label="Toggle navigation" class="menu-btn" onclick="toggleMenu()" type="button">☰</button>
-</div>
-<nav aria-label="Mobile navigation" class="mobile-menu" id="mobile-menu"></nav>
-</header>
+<div data-gi-header></div>
+
 <main class="container">
-<section class="hero hero-banner">
-<img alt="GAS-INFO gas availability banner" src="public/image/banner.png"/>
-</section>
-<section class="search-card" id="search">
-<h2>Search Availability</h2>
-<input autocomplete="off" class="search-bar" id="search-input" onclick="openSearch()" onfocus="openSearch()" placeholder="Click to enter location, cylinder and quantity" type="text"/>
-<form class="search-form" id="search-form">
-<div class="grid">
-<div>
-<label for="province">Province</label>
-<input autocomplete="off" id="province" list="province-options" name="province" placeholder="Type province"/>
-<datalist id="province-options"></datalist>
-</div>
-<div>
-<label for="district">District</label>
-<input autocomplete="off" id="district" list="district-options" name="district" placeholder="Type district"/>
-<datalist id="district-options"></datalist>
-</div>
-<div>
-<label for="municipality">Municipality</label>
-<input autocomplete="off" id="municipality" list="municipality-options" name="municipality" placeholder="Type municipality"/>
-<datalist id="municipality-options"></datalist>
-</div>
-<div>
-<label for="ward">Ward No.</label>
-<input autocomplete="off" id="ward" list="ward-options" name="ward" placeholder="Type ward number"/>
-<datalist id="ward-options"></datalist>
-</div>
-<div>
-<label for="town">Town / Village</label>
-<input id="town" name="town" placeholder="Enter town / village"/>
-</div>
-<div>
-<label for="location">Exact Location</label>
-<input id="location" name="location" placeholder="Enter exact location"/>
-</div>
-<div>
-<label for="cylinder">Gas / Cylinder Name</label>
-<input id="cylinder" name="cylinder" placeholder="Cylinder name"/>
-</div>
-<div>
-<label for="quantity">Quantity</label>
-<input id="quantity" min="1" name="quantity" placeholder="Quantity" type="number" value="1"/>
-</div>
-</div>
-<button class="btn" type="submit">Search</button>
-<button class="btn secondary" onclick="closeSearch()" type="button">Close</button>
-<p aria-live="polite" class="muted" id="location-note"></p>
-</form>
-</section>
-<section id="results" style="display:none">
-<h2 class="section-title">Results</h2>
-<div class="tabs">
-<a href="results/all.html">ALL</a>
-<a href="results/high-rated.html">HIGH-RATED</a>
-<a href="results/others.html">OTHERS</a>
-</div>
-<p aria-live="polite" class="muted" id="search-summary"></p>
-<div id="results-list"></div>
-</section>
-<section class="card">
-<h2>Welcome to GAS-INFO</h2>
-<p>
+  <section class="hero hero-banner">
+    <img src="public/image/banner.png"
+         alt="GAS-INFO gas availability banner">
+  </section>
+
+  <section id="search" class="search-card">
+    <h2>Search Availability</h2>
+
+    <input id="search-input"
+           class="search-bar"
+           type="text"
+           onclick="openSearch()"
+           onfocus="openSearch()"
+           placeholder="Click to enter location, cylinder and quantity"
+           autocomplete="off">
+
+    <form id="search-form" class="search-form">
+      <div class="grid">
+        <div>
+          <label for="province">Province</label>
+          <input id="province" name="province" list="province-options"
+                 placeholder="Type province" autocomplete="off">
+          <datalist id="province-options"></datalist>
+        </div>
+
+        <div>
+          <label for="district">District</label>
+          <input id="district" name="district" list="district-options"
+                 placeholder="Type district" autocomplete="off">
+          <datalist id="district-options"></datalist>
+        </div>
+
+        <div>
+          <label for="municipality">Municipality</label>
+          <input id="municipality" name="municipality"
+                 list="municipality-options"
+                 placeholder="Type municipality" autocomplete="off">
+          <datalist id="municipality-options"></datalist>
+        </div>
+
+        <div>
+          <label for="ward">Ward No.</label>
+          <input id="ward" name="ward" list="ward-options"
+                 placeholder="Type ward number" autocomplete="off">
+          <datalist id="ward-options"></datalist>
+        </div>
+
+        <div>
+          <label for="town">Town / Village</label>
+          <input id="town" name="town"
+                 placeholder="Enter town / village">
+        </div>
+
+        <div>
+          <label for="location">Exact Location</label>
+          <input id="location" name="location"
+                 placeholder="Enter exact location">
+        </div>
+
+        <div>
+          <label for="cylinder">Gas / Cylinder Name</label>
+          <input id="cylinder" name="cylinder"
+                 placeholder="Cylinder name">
+        </div>
+
+        <div>
+          <label for="quantity">Quantity</label>
+          <input id="quantity" name="quantity" type="number"
+                 min="1" value="1" placeholder="Quantity">
+        </div>
+      </div>
+
+      <button class="btn" type="submit">Search</button>
+      <button class="btn secondary" type="button"
+              onclick="closeSearch()">Close</button>
+      <p id="location-note" class="muted" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section id="results" style="display:none">
+    <h2 class="section-title">Results</h2>
+    <div class="tabs">
+      <a href="results/all.html">ALL</a>
+      <a href="results/high-rated.html">HIGH-RATED</a>
+      <a href="results/others.html">OTHERS</a>
+    </div>
+    <p id="search-summary" class="muted" aria-live="polite"></p>
+    <div id="results-list"></div>
+  </section>
+
+  <section class="card">
+    <h2>Welcome to GAS-INFO</h2>
+    <p>
       GAS-INFO connects customers with trader-provided information
       about gas cylinder availability in their area.
     </p>
-</section>
-<section class="card">
-<h2>Important</h2>
-<p class="muted">
+  </section>
+
+  <section class="card">
+    <h2>Important</h2>
+    <p class="muted">
       Stock information is provided by the trader and may change at any time.
       Please check the latest information before visiting the shop.
     </p>
-</section>
+  </section>
 </main>
-<footer class="site-footer"><nav aria-label="Footer links" class="site-footer-links">
-<a href="about.html">About Us</a>
-<a href="reviews.html">Rate &amp; Reviews</a>
-<a href="updates.html">Updates</a>
-<a href="terms.html">Terms &amp; Penalties</a>
-<a href="legal.html">Legal &amp; Compliance</a>
-<a href="privacy.html">🔒 Privacy Policy</a>
-<a href="contact.html">Contact / Report</a>
-</nav>
-<p class="site-footer-copy">© 2026 GAS-INFO. Information platform for gas availability.</p></footer>
+
+<div data-gi-footer></div>
+
 <script src="js/script.js"></script>
 <script src="js/ui-feedback.js"></script>
 <script src="js/public-api.js"></script>
+<script src="js/common-layout.js"></script>
 </body>
 </html>
