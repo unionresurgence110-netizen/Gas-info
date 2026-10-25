@@ -1,2 +1,126 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trader Dashboard | GAS-INFO</title><link rel="stylesheet" href="../css/style.css"></head><body data-dashboard="trader"><div data-gi-header></div><main class="container"><div class="page-title"><h1>Trader Dashboard</h1><p class="muted" id="welcome">Loading account…</p></div><p id="message" class="notice" aria-live="polite">Keep reported stock accurate and update it whenever availability changes.</p><section class="card"><h2>Shop Details & Stock Update</h2><p class="muted">Only shops linked to your account appear here. Pending shops are not publicly listed until approved.</p><div id="shops"><p class="muted">Loading your shops…</p></div></section><section class="card"><h2>Reports & Verification</h2><p class="muted">Respond to reports about your shop. Responses are sent for admin review; they do not automatically dismiss a report.</p><div id="traderReports"><p class="muted">Loading reports…</p></div></section><section class="card"><h2>Customer Reviews</h2><div id="traderReviews"><p class="muted">Loading reviews…</p></div></section><section class="card"><h2>Notifications</h2><div id="notifications"><p class="muted">Loading notifications…</p></div></section><p class="notice">Stock information is provided by the trader and may change at any time. Please check the latest information before visiting. GAS-INFO does not sell, book, reserve or deliver cylinders.</p></main><div data-gi-footer></div><script src="../js/ui-feedback.js"></script><script src="../js/dashboard.js"></script><script src="../js/common-layout.js"></script>
-</body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Trader Dashboard | GAS-INFO</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body data-dashboard="trader">
+  <div data-gi-header></div>
+
+  <main class="container">
+    <div class="page-title">
+      <h1>Trader Dashboard</h1>
+      <p class="muted" id="welcome">Loading account…</p>
+    </div>
+
+    <p id="message" class="notice" aria-live="polite">
+      Keep reported stock accurate and update it whenever availability changes.
+    </p>
+
+    <section class="card">
+      <h2>Shop Details &amp; Stock Update</h2>
+      <p class="muted">
+        Only shops linked to your account appear here. Pending shops are not
+        publicly listed until approved.
+      </p>
+      <div id="shops">
+        <p class="muted">Loading your shops…</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Reports &amp; Verification</h2>
+      <p class="muted">
+        Respond to reports about your shop. Responses are sent for admin review;
+        they do not automatically dismiss a report.
+      </p>
+      <div id="traderReports">
+        <p class="muted">Loading reports…</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Customer Reviews</h2>
+      <div id="traderReviews">
+        <p class="muted">Loading reviews…</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Notifications</h2>
+      <div id="notifications">
+        <p class="muted">Loading notifications…</p>
+      </div>
+    </section>
+
+    <section class="card" id="deleteAccountCard">
+      <h2>Delete Account / Delete Everything</h2>
+      <p class="muted">
+        This is permanent. It deletes your account, shop listing, stock and
+        stock history, shop images, your reviews and reports, website reviews,
+        notifications, and account-linked records. Admin moderation logs may
+        retain anonymized references where required for system integrity.
+        This action cannot be undone.
+      </p>
+
+      <button class="btn secondary" type="button" id="beginDelete">
+        Continue to deletion
+      </button>
+
+      <form id="deleteAccountForm" hidden>
+        <p class="notice error">
+          Final confirmation: permanent deletion cannot be reversed.
+        </p>
+
+        <label for="deletePassword">Current account password</label>
+        <input
+          id="deletePassword"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        >
+
+        <label for="deleteConfirmation">Type DELETE to confirm</label>
+        <input
+          id="deleteConfirmation"
+          name="confirmation"
+          required
+          pattern="DELETE"
+          autocomplete="off"
+        >
+
+        <div class="grid">
+          <button class="btn secondary" type="button" id="cancelDelete">
+            Cancel
+          </button>
+          <button class="btn" type="submit">
+            Permanently delete my account
+          </button>
+        </div>
+
+        <p
+          id="deleteStatus"
+          class="notice"
+          role="status"
+          aria-live="polite"
+        ></p>
+      </form>
+    </section>
+
+    <p class="notice">
+      Stock information is provided by the trader and may change at any time.
+      Please check the latest information before visiting. GAS-INFO does not
+      sell, book, reserve or deliver cylinders.
+    </p>
+  </main>
+
+  <div data-gi-footer></div>
+
+  <script src="../js/ui-feedback.js"></script>
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/common-layout.js"></script>
+</body>
+</html>
