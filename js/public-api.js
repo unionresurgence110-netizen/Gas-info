@@ -729,8 +729,10 @@
         return;
       }
 
-      search(filters, root, kind);
+            search(filters, root, kind);
     }
-  })();
+  });
+})();
 
+// ===== PART 4 END =====
 // ===== PART 4 END =====    
