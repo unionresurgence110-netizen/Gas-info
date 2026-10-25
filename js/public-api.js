@@ -10,7 +10,7 @@
     "'": "&#39;"
   })[c]);
 
-  const getToken = () => localStorage.getItem("gasInfoToken") || "";
+  const getToken = () => sessionStorage.getItem("gasInfoToken") || "";
 
   const inResultsFolder = () =>
     location.pathname.split("/").includes("results");
@@ -671,7 +671,7 @@
           return;
         }
 
-        localStorage.setItem(
+        sessionStorage.setItem(
           "gasInfoLastSearch",
           JSON.stringify(filters)
         );
@@ -702,7 +702,7 @@
 
       try {
         filters = JSON.parse(
-          localStorage.getItem("gasInfoLastSearch") || "{}"
+          sessionStorage.getItem("gasInfoLastSearch") || "{}"
         );
       } catch {
         filters = {};

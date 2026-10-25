@@ -29,8 +29,8 @@ function renderNav() {
   );
   let account = null;
   try {
-    const token = localStorage.getItem("gasInfoToken");
-    const user = JSON.parse(localStorage.getItem("gasInfoUser") || "null");
+    const token = sessionStorage.getItem("gasInfoToken");
+    const user = JSON.parse(sessionStorage.getItem("gasInfoUser") || "null");
     if (token && user && ["customer", "trader", "admin"].includes(user.role)) {
       const accountPath = user.role === "admin" ? "admin/dashboard.html" : user.role === "trader" ? "trader/dashboard.html" : "customer/profile.html";
       const accountLabel = user.role === "admin" ? "Admin Console" : user.role === "trader" ? "Trader Dashboard" : "My Profile";
@@ -44,8 +44,8 @@ function renderNav() {
   box.innerHTML = linkMarkup + accountMarkup + `<button class="nav-btn" type="button" onclick="toggleTheme()">☾ Theme</button>`;
   mobile.innerHTML = linkMarkup + accountMarkup + `<a href="#" onclick="toggleTheme();return false">☾ Theme</a>`;
   document.querySelectorAll("[data-nav-logout]").forEach(button => button.addEventListener("click", () => {
-    localStorage.removeItem("gasInfoToken");
-    localStorage.removeItem("gasInfoUser");
+    sessionStorage.removeItem("gasInfoToken");
+    sessionStorage.removeItem("gasInfoUser");
     location.href = getLink("index.html");
   }));
 }
