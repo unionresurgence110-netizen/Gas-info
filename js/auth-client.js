@@ -56,8 +56,8 @@
       );
     }
 
-    sessionStorage.setItem('gasInfoToken', data.token);
-    sessionStorage.setItem('gasInfoUser', JSON.stringify(data.user));
+    localStorage.setItem('gasInfoToken', data.token);
+    localStorage.setItem('gasInfoUser', JSON.stringify(data.user));
   }
 
   function roleHome(role) {
@@ -106,7 +106,6 @@
           saveSession(data);
 
           const role = data.user.role;
-          // Navigate directly after success; avoid a browser-origin popup.
           window.location.href = roleHome(role);
         } catch (err) {
           message(err.message, 'error');
@@ -147,7 +146,6 @@
           });
 
           saveSession(data);
-
           window.location.href = '../customer/profile.html';
         } catch (err) {
           message(err.message, 'error');
@@ -157,8 +155,81 @@
       });
     }
 
-    // TRADER REGISTRATION
+    // TRADER REGISTRATION OR CUSTOMER-TO-TRADER SWITCH
     const trader = $('traderRegisterForm');
+    const switchMode =
+      new URLSearchParams(window.location.search).get('switch') === '1';
+
+    if (trader && switchMode) {
+      let currentUser = null;
+
+      try {
+        currentUser = JSON.parse(
+          localStorage.getItem('gasInfoUser') || 'null'
+        );
+      } catch {}
+
+      if (
+        !localStorage.getItem('gasInfoToken') ||
+        !currentUser ||
+        currentUser.role !== 'customer'
+      ) {
+        message(
+          'Please sign in to your customer account first to switch to Trader.',
+          'error'
+        );
+
+        window.setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1200);
+      }
+
+      const accountSection =
+        $('username')?.closest('.form-section');
+
+      if (accountSection) {
+        accountSection
+          .querySelector('h2')
+          ?.replaceChildren(
+            document.createTextNode('Confirm Your Existing Account')
+          );
+
+        const note = accountSection.querySelector('.section-note');
+
+        if (note) {
+          note.textContent =
+            'Your existing customer account will be reused. Enter its current password below; no new account will be created.';
+        }
+
+        ['username', 'email', 'confirmPassword'].forEach(id => {
+          const field = $(id);
+
+          if (field) {
+            const group = field.closest('.form-group');
+            if (group) group.hidden = true;
+            field.required = false;
+          }
+        });
+
+        const passwordField = $('password');
+
+        if (passwordField) {
+          passwordField.placeholder =
+            'Enter your current account password';
+          passwordField.autocomplete = 'current-password';
+        }
+      }
+
+      const title = document.querySelector('main h1, .page-title h1');
+
+      if (title) title.textContent = 'Switch to Trader';
+
+      const submit = trader.querySelector('[type="submit"]');
+
+      if (submit) {
+        submit.textContent = 'Switch Account & Submit Shop';
+      }
+    }
 
     if (trader) {
       trader.addEventListener('submit', async event => {
@@ -166,20 +237,29 @@
 
         const password = $('password').value;
 
-        if (password !== $('confirmPassword').value) {
+        if (
+          !switchMode &&
+          password !== $('confirmPassword').value
+        ) {
           return message('Passwords do not match.');
         }
 
-        if (password.length < 8) {
-          return message('Password must be at least 8 characters.');
+        if (password.length < (switchMode ? 1 : 8)) {
+          return message(
+            'Password must be at least 8 characters.'
+          );
         }
 
         if (!$('terms').checked) {
-          return message('Please agree to the Terms & Legal requirements.');
+          return message(
+            'Please agree to the Terms & Legal requirements.'
+          );
         }
 
         if (!$('latitude').value || !$('longitude').value) {
-          return message('Please select the exact shop location on the map.');
+          return message(
+            'Please select the exact shop location on the map.'
+          );
         }
 
         const province = $('province').value;
@@ -193,7 +273,83 @@
           );
         }
 
-        setBusy(trader, true, 'Checking shop details…');
+        setBusy(
+          trader,
+          true,
+          switchMode
+            ? 'Switching account…'
+            : 'Checking shop details…'
+        );
+
+        if (switchMode) {
+          try {
+            const duplicate = await request(
+              '/api/trader/shops/check-duplicate',
+              {
+                method: 'POST',
+                body: JSON.stringify({
+                  shop_name: $('shopName').value.trim(),
+                  municipality,
+                  phone: $('phone').value.trim(),
+                  business_email: $('businessEmail').value.trim()
+                })
+              }
+            );
+
+            if (
+              duplicate.possibleDuplicate &&
+              !(await (
+                window.gasInfoConfirm
+                  ? window.gasInfoConfirm(
+                      duplicate.message +
+                      '\n\nContinue with this shop information anyway?'
+                    )
+                  : Promise.resolve(false)
+              ))
+            ) {
+              return;
+            }
+
+            const data = await request(
+              '/api/auth/switch-to-trader',
+              {
+                method: 'POST',
+                headers: {
+                  Authorization:
+                    `Bearer ${localStorage.getItem('gasInfoToken') || ''}`
+                },
+                body: JSON.stringify({
+                  password,
+                  shop: {
+                    shop_name: $('shopName').value.trim(),
+                    phone: $('phone').value.trim(),
+                    business_email: $('businessEmail').value.trim(),
+                    province,
+                    district,
+                    municipality,
+                    ward_no: ward,
+                    town_village: $('townVillage').value.trim(),
+                    exact_location: $('exactLocation').value.trim(),
+                    latitude: $('latitude').value,
+                    longitude: $('longitude').value
+                  }
+                })
+              }
+            );
+
+            saveSession(data);
+            message(
+              'Account switched successfully. Your shop is pending approval.'
+            );
+            window.location.href = '../trader/dashboard.html';
+          } catch (err) {
+            message(err.message, 'error');
+          } finally {
+            setBusy(trader, false);
+          }
+
+          return;
+        }
 
         let accountCreated = false;
 
@@ -213,9 +369,14 @@
 
           if (
             duplicate.possibleDuplicate &&
-            !(await (window.gasInfoConfirm
-              ? window.gasInfoConfirm(duplicate.message + '\n\nContinue registration anyway?')
-              : Promise.resolve(false)))
+            !(await (
+              window.gasInfoConfirm
+                ? window.gasInfoConfirm(
+                    duplicate.message +
+                    '\n\nContinue registration anyway?'
+                  )
+                : Promise.resolve(false)
+            ))
           ) {
             return;
           }
@@ -235,7 +396,7 @@
           accountCreated = true;
           saveSession(authData);
 
-          const shopData = await request('/api/trader/shops', {
+          await request('/api/trader/shops', {
             method: 'POST',
             headers: {
               Authorization: `Bearer ${authData.token}`
@@ -255,7 +416,6 @@
             })
           });
 
-          // The destination dashboard shows the shop's pending status.
           window.location.href = '../trader/dashboard.html';
         } catch (err) {
           if (accountCreated) {
@@ -264,7 +424,11 @@
               'Opening shop setup so you can retry without registering another account.',
               'error'
             );
-            window.setTimeout(() => { window.location.href = '../trader/dashboard.html?shopSetup=failed'; }, 2200);
+
+            window.setTimeout(() => {
+              window.location.href =
+                '../trader/dashboard.html?shopSetup=failed';
+            }, 2200);
           } else {
             message(err.message, 'error');
           }
@@ -275,4 +439,4 @@
     }
   });
 })();
-        
+    
