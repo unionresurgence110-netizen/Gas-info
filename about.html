@@ -1,12 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>About Us - GAS-INFO</title>
-
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>About Us - GAS-INFO</title>
+<style>
         * {
             box-sizing: border-box;
             margin: 0;
@@ -306,484 +305,210 @@
             }
         }
     </style>
-</head>
-
+<link href="css/style.css" rel="stylesheet"/></head>
 <body>
-
-    <!-- ================= NAVBAR ================= -->
-
-    <header class="site-header">
-        <nav class="navbar">
-
-            <a href="index.html" class="brand">
-                GAS-INFO
-            </a>
-
-            <button
-                class="menu-toggle"
-                id="menuToggle"
-                type="button"
-                aria-label="Open navigation menu"
-                aria-controls="mainNav"
-                aria-expanded="false">
-                ☰
-            </button>
-
-            <div class="nav-links" id="mainNav">
-
-                <a href="index.html">Home</a>
-
-                <a href="index.html#search">
-                    Search / Explore
-                </a>
-
-                <a href="results/all.html">
-                    ALL
-                </a>
-
-                <a href="results/high-rated.html">
-                    HIGH-RATED
-                </a>
-
-                <a href="results/others.html">
-                    OTHERS
-                </a>
-
-                <a href="updates.html">
-                    Updates
-                </a>
-
-                <a href="reviews.html">
-                    Rate &amp; Reviews
-                </a>
-
-                <a href="auth/login.html">
-                    Customer / Trader
-                </a>
-
-                <button
-                    id="themeToggle"
-                    type="button"
-                    class="theme-toggle">
-                    Theme
-                </button>
-
-            </div>
-
-        </nav>
-    </header>
-
-
-    <!-- ================= MAIN CONTENT ================= -->
-
-    <main>
-
-        <div class="page-title">
-            <h1>About GAS-INFO</h1>
-            <p>
+<!-- ================= NAVBAR ================= -->
+<header class="navbar site-shell-header">
+<div class="nav-inner">
+<a class="brand" href="index.html">GAS-INFO</a>
+<nav aria-label="Main navigation" class="nav-links" id="nav-links"></nav>
+<button aria-controls="mobile-menu" aria-label="Toggle navigation" class="menu-btn" onclick="toggleMenu()" type="button">☰</button>
+</div>
+<nav aria-label="Mobile navigation" class="mobile-menu" id="mobile-menu"></nav>
+</header>
+<!-- ================= MAIN CONTENT ================= -->
+<main>
+<div class="page-title">
+<h1>About GAS-INFO</h1>
+<p>
                 Connecting customers with trader-provided gas availability information.
             </p>
-        </div>
-
-
-        <!-- WHAT IS GAS-INFO -->
-
-        <section class="about-section">
-
-            <h2>What is GAS-INFO?</h2>
-
-            <p>
+</div>
+<!-- WHAT IS GAS-INFO -->
+<section class="about-section">
+<h2>What is GAS-INFO?</h2>
+<p>
                 GAS-INFO is a Nepal-focused information platform designed to
                 help customers find information about gas cylinder availability
                 reported by gas traders.
             </p>
-
-            <p>
+<p>
                 The platform connects customers and traders by making
                 availability information easier to discover.
             </p>
-
-        </section>
-
-
-        <!-- WHY CREATED -->
-
-        <section class="about-section">
-
-            <h2>Why was GAS-INFO created?</h2>
-
-            <p>
+</section>
+<!-- WHY CREATED -->
+<section class="about-section">
+<h2>Why was GAS-INFO created?</h2>
+<p>
                 Finding a gas cylinder can sometimes be difficult when people
                 do not know which nearby trader may have stock.
             </p>
-
-            <p>
+<p>
                 GAS-INFO was created to make this information easier to find
                 through location-based searching and trader-provided stock
                 updates.
             </p>
-
-        </section>
-
-
-        <!-- PROBLEM -->
-
-        <section class="about-section">
-
-            <h2>The Problem We Are Solving</h2>
-
-            <p>
+</section>
+<!-- PROBLEM -->
+<section class="about-section">
+<h2>The Problem We Are Solving</h2>
+<p>
                 Customers may have to visit or contact multiple shops to find
                 out whether a particular gas cylinder is available.
             </p>
-
-            <p>
+<p>
                 GAS-INFO aims to reduce this unnecessary searching by bringing
                 available trader information into one place.
             </p>
-
-        </section>
-
-
-        <!-- HOW IT WORKS -->
-
-        <section class="about-section">
-
-            <h2>How GAS-INFO Works</h2>
-
-            <ul>
-                <li>
+</section>
+<!-- HOW IT WORKS -->
+<section class="about-section">
+<h2>How GAS-INFO Works</h2>
+<ul>
+<li>
                     Customers search using location, cylinder and quantity information.
                 </li>
-
-                <li>
+<li>
                     Available location choices are based on information present
                     in the GAS-INFO system.
                 </li>
-
-                <li>
+<li>
                     Traders register and provide their shop information.
                 </li>
-
-                <li>
+<li>
                     Traders update their own stock information.
                 </li>
-
-                <li>
+<li>
                     Search results can consider stock suitability, rating and
                     freshness of the information.
                 </li>
-            </ul>
-
-        </section>
-
-
-        <!-- CUSTOMERS -->
-
-        <section class="about-section">
-
-            <h2>For Customers</h2>
-
-            <p>
+</ul>
+</section>
+<!-- CUSTOMERS -->
+<section class="about-section">
+<h2>For Customers</h2>
+<p>
                 Customers can use GAS-INFO to search for trader information
                 without needing to purchase or book gas through the platform.
             </p>
-
-            <ul>
-                <li>Search for gas availability information.</li>
-                <li>Explore available trader information.</li>
-                <li>View ratings and reviews.</li>
-                <li>Report incorrect information.</li>
-            </ul>
-
-        </section>
-
-
-        <!-- TRADERS -->
-
-        <section class="about-section">
-
-            <h2>For Traders</h2>
-
-            <p>
+<ul>
+<li>Search for gas availability information.</li>
+<li>Explore available trader information.</li>
+<li>View ratings and reviews.</li>
+<li>Report incorrect information.</li>
+</ul>
+</section>
+<!-- TRADERS -->
+<section class="about-section">
+<h2>For Traders</h2>
+<p>
                 Traders can register and provide information about their shop
                 and available stock.
             </p>
-
-            <ul>
-                <li>Add shop information.</li>
-                <li>Update cylinder stock.</li>
-                <li>Maintain their stock information.</li>
-                <li>Receive relevant notifications and reports.</li>
-                <li>Manage their trader account.</li>
-            </ul>
-
-        </section>
-
-
-        <!-- DOES NOT DO -->
-
-        <section class="about-section">
-
-            <h2>What GAS-INFO Does NOT Do</h2>
-
-            <div class="highlight">
-
-                <p>
+<ul>
+<li>Add shop information.</li>
+<li>Update cylinder stock.</li>
+<li>Maintain their stock information.</li>
+<li>Receive relevant notifications and reports.</li>
+<li>Manage their trader account.</li>
+</ul>
+</section>
+<!-- DOES NOT DO -->
+<section class="about-section">
+<h2>What GAS-INFO Does NOT Do</h2>
+<div class="highlight">
+<p>
                     GAS-INFO is an information platform only.
                 </p>
-
-                <ul>
-                    <li>It does not sell gas.</li>
-                    <li>It does not process gas purchases.</li>
-                    <li>It does not provide booking or reservations.</li>
-                    <li>It does not provide gas delivery.</li>
-                    <li>It does not process payments.</li>
-                </ul>
-
-            </div>
-
-        </section>
-
-
-        <!-- INFORMATION ACCURACY -->
-
-        <section class="about-section">
-
-            <h2>Information Accuracy</h2>
-
-            <p>
+<ul>
+<li>It does not sell gas.</li>
+<li>It does not process gas purchases.</li>
+<li>It does not provide booking or reservations.</li>
+<li>It does not provide gas delivery.</li>
+<li>It does not process payments.</li>
+</ul>
+</div>
+</section>
+<!-- INFORMATION ACCURACY -->
+<section class="about-section">
+<h2>Information Accuracy</h2>
+<p>
                 Stock and shop information is provided by traders and may
                 change at any time.
             </p>
-
-            <p>
+<p>
                 GAS-INFO provides tools for reporting incorrect information,
                 but trader-provided information should not automatically be
                 considered verified.
             </p>
-
-        </section>
-
-
-        <!-- STOCK DISCLAIMER -->
-
-        <section class="about-section">
-
-            <h2>Stock Availability Disclaimer</h2>
-
-            <p>
+</section>
+<!-- STOCK DISCLAIMER -->
+<section class="about-section">
+<h2>Stock Availability Disclaimer</h2>
+<p>
                 Stock information is provided by the trader and may change at
                 any time. Please check the latest information before visiting
                 a shop.
             </p>
-
-        </section>
-
-
-        <!-- LIMITATION -->
-
-        <section class="about-section">
-
-            <h2>Limitation of Responsibility</h2>
-
-            <p>
+</section>
+<!-- LIMITATION -->
+<section class="about-section">
+<h2>Limitation of Responsibility</h2>
+<p>
                 GAS-INFO is not responsible for transactions, delivery, gas
                 quality, price, fraud, or other losses resulting from
                 interactions between customers and traders.
             </p>
-
-        </section>
-
-
-        <!-- TRUST -->
-
-        <section class="about-section">
-
-            <h2>Trust &amp; Transparency</h2>
-
-            <p>
+</section>
+<!-- TRUST -->
+<section class="about-section">
+<h2>Trust &amp; Transparency</h2>
+<p>
                 GAS-INFO aims to maintain transparency by showing information
                 about stock freshness, ratings, reviews and reporting systems.
             </p>
-
-            <p>
+<p>
                 Information that violates the platform rules may be reviewed
                 and removed according to the applicable moderation process.
             </p>
-
-        </section>
-
-
-        <!-- FUTURE -->
-
-        <section class="about-section">
-
-            <h2>Future Vision</h2>
-
-            <p>
+</section>
+<!-- FUTURE -->
+<section class="about-section">
+<h2>Future Vision</h2>
+<p>
                 GAS-INFO aims to improve the way customers discover gas
                 availability information across Nepal while giving traders
                 useful tools to maintain accurate information.
             </p>
-
-        </section>
-
-
-        <!-- DISCLAIMER -->
-
-        <section class="about-section">
-
-            <h2>Disclaimer</h2>
-
-            <p>
+</section>
+<!-- DISCLAIMER -->
+<section class="about-section">
+<h2>Disclaimer</h2>
+<p>
                 GAS-INFO provides information based on data submitted through
                 the platform. Availability information may become outdated
                 after a trader's update.
             </p>
-
-            <p>
+<p>
                 Users should verify the latest information before visiting a
                 trader. GAS-INFO does not guarantee that reported stock will
                 remain available.
             </p>
+</section>
+</main>
+<!-- ================= FOOTER ================= -->
+<footer class="site-footer"><nav aria-label="Footer links" class="site-footer-links">
+<a href="about.html">About Us</a>
+<a href="reviews.html">Rate &amp; Reviews</a>
+<a href="updates.html">Updates</a>
+<a href="terms.html">Terms &amp; Penalties</a>
+<a href="legal.html">Legal &amp; Compliance</a>
+<a href="privacy.html">🔒 Privacy Policy</a>
+<a href="contact.html">Contact / Report</a>
+</nav>
+<p class="site-footer-copy">© 2026 GAS-INFO. Information platform for gas availability.</p></footer>
+<!-- ================= JAVASCRIPT ================= -->
 
-        </section>
-
-    </main>
-
-
-    <!-- ================= FOOTER ================= -->
-
-    <footer class="site-footer">
-
-        <div class="footer-links">
-
-            <a href="about.html">About Us</a>
-
-            <a href="reviews.html">
-                Rate &amp; Reviews
-            </a>
-
-            <a href="updates.html">
-                Updates
-            </a>
-
-            <a href="terms.html">
-                Terms &amp; Penalties
-            </a>
-
-            <a href="legal.html">
-                Legal &amp; Compliance
-            </a>
-
-            <a href="contact.html">
-                Contact / Report
-            </a>
-            
-            <a href="privacy.html">🔒 Privacy Policy</a>
-
-        </div>
-
-        <p class="footer-copy">
-            © 2026 GAS-INFO. Information platform only.
-        </p>
-
-    </footer>
-
-
-    <!-- ================= JAVASCRIPT ================= -->
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            /* MOBILE MENU */
-
-            const menuToggle = document.getElementById("menuToggle");
-            const mainNav = document.getElementById("mainNav");
-
-            if (menuToggle && mainNav) {
-
-                menuToggle.addEventListener("click", function (event) {
-
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    mainNav.classList.toggle("open");
-
-                    const isOpen =
-                        mainNav.classList.contains("open");
-
-                    menuToggle.setAttribute(
-                        "aria-expanded",
-                        isOpen ? "true" : "false"
-                    );
-
-                });
-
-
-                /* Close menu after clicking a link */
-
-                const navLinks =
-                    mainNav.querySelectorAll("a");
-
-                navLinks.forEach(function (link) {
-
-                    link.addEventListener("click", function () {
-
-                        mainNav.classList.remove("open");
-
-                        menuToggle.setAttribute(
-                            "aria-expanded",
-                            "false"
-                        );
-
-                    });
-
-                });
-
-            }
-
-
-            /* THEME TOGGLE */
-
-            const themeToggle =
-                document.getElementById("themeToggle");
-
-            if (themeToggle) {
-
-                const savedTheme =
-                    localStorage.getItem("gasInfoTheme");
-
-                if (savedTheme === "light") {
-                    document.body.classList.add("light-theme");
-                }
-
-                themeToggle.addEventListener(
-                    "click",
-                    function () {
-
-                        document.body.classList.toggle(
-                            "light-theme"
-                        );
-
-                        const isLight =
-                            document.body.classList.contains(
-                                "light-theme"
-                            );
-
-                        localStorage.setItem(
-                            "gasInfoTheme",
-                            isLight ? "light" : "dark"
-                        );
-
-                    }
-                );
-
-            }
-
-        });
-    </script>
-
-</body>
+<script src="js/script.js"></script></body>
 </html>

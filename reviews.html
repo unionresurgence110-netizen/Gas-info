@@ -1,15 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <meta name="description"
-          content="GAS-INFO Rate and Reviews">
-
-    <title>Rate & Reviews | GAS-INFO</title>
-
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="GAS-INFO Rate and Reviews" name="description"/>
+<title>Rate &amp; Reviews | GAS-INFO</title>
+<style>
 
         * {
             box-sizing: border-box;
@@ -537,380 +534,149 @@
         }
 
     </style>
-</head>
-
+<link href="css/style.css" rel="stylesheet"/></head>
 <body>
-
-    <!-- =========================
+<!-- =========================
          NAVBAR
          ========================= -->
-
-    <header class="site-header">
-        <nav class="navbar">
-
-            <a href="index.html" class="brand">GAS-INFO</a>
-
-            <button class="menu-toggle"
-                    id="menuToggle"
-                    type="button"
-                    aria-label="Open navigation menu"
-                    aria-controls="mainNav"
-                    aria-expanded="false">
-                ☰
-            </button>
-
-            <div class="nav-links" id="mainNav">
-
-                <a href="index.html">Home</a>
-
-                <a href="index.html#search">
-                    Search / Explore
-                </a>
-
-                <a href="results/all.html">
-                    ALL
-                </a>
-
-                <a href="results/high-rated.html">
-                    HIGH-RATED
-                </a>
-
-                <a href="results/others.html">
-                    OTHERS
-                </a>
-
-                <a href="updates.html">
-                    Updates
-                </a>
-
-                <a href="reviews.html">
-                    Rate &amp; Reviews
-                </a>
-
-                <a href="auth/login.html">
-                    Customer / Trader
-                </a>
-
-                <button id="themeToggle"
-                        type="button"
-                        class="theme-toggle">
-                    ☾ Theme
-                </button>
-
-            </div>
-
-        </nav>
-    </header>
-
-
-    <!-- =========================
+<header class="navbar site-shell-header">
+<div class="nav-inner">
+<a class="brand" href="index.html">GAS-INFO</a>
+<nav aria-label="Main navigation" class="nav-links" id="nav-links"></nav>
+<button aria-controls="mobile-menu" aria-label="Toggle navigation" class="menu-btn" onclick="toggleMenu()" type="button">☰</button>
+</div>
+<nav aria-label="Mobile navigation" class="mobile-menu" id="mobile-menu"></nav>
+</header>
+<!-- =========================
          MAIN CONTENT
          ========================= -->
-
-    <main>
-
-        <section class="page-heading">
-
-            <h1>Rate &amp; Reviews</h1>
-
-            <p>
+<main>
+<section class="page-heading">
+<h1>Rate &amp; Reviews</h1>
+<p>
                 Share your experience with GAS-INFO and help other
                 customers understand the information available on the platform.
             </p>
-
-        </section>
-
-
-        <!-- =========================
+</section>
+<!-- =========================
              SHOP REVIEWS
              ========================= -->
-
-        <section class="review-section">
-
-            <h2>Shop Reviews</h2>
-
-            <p class="section-description">
+<section class="review-section">
+<h2>Shop Reviews</h2>
+<p class="section-description">
                 Customers can rate and review a gas trader/shop based
                 on their experience with the information provided.
             </p>
-
-
-            <div class="login-notice">
-
-                <h3>Login required</h3>
-
-                <p>
+<div class="login-notice">
+<h3>Login required</h3>
+<p>
                     You need to log in to submit a rating or review.
                     This helps GAS-INFO maintain a reliable review system.
                 </p>
-
-                <a href="auth/login.html" class="login-button">
+<a class="login-button" href="auth/login.html">
                     Login / Register
                 </a>
-
-            </div>
-
-
-            <ul class="review-rules">
-
-                <li>
+</div>
+<ul class="review-rules">
+<li>
                     A customer can have one active rating/review
                     for a particular shop.
                 </li>
-
-                <li>
+<li>
                     Reviews should describe the customer's genuine
                     experience or relevant information.
                 </li>
-
-                <li>
+<li>
                     Fake, misleading, abusive, or otherwise
                     inappropriate reviews may be moderated.
                 </li>
-
-                <li>
+<li>
                     Shop reviews are separate from GAS-INFO website reviews.
                 </li>
-
-            </ul>
-
-
-            <div class="empty-reviews">
-
-                <strong>No shop reviews to display yet.</strong>
+</ul>
+<div class="empty-reviews">
+<strong>No shop reviews to display yet.</strong>
 
                 Shop reviews will appear here when real customer
                 reviews are available.
 
             </div>
-
-        </section>
-
-
-        <!-- =========================
+</section>
+<!-- =========================
              WEBSITE REVIEWS
              ========================= -->
-
-        <section class="review-section">
-
-            <h2>GAS-INFO Website Reviews</h2>
-
-            <p class="section-description">
+<section class="review-section">
+<h2>GAS-INFO Website Reviews</h2>
+<p class="section-description">
                 Tell us about your experience using the GAS-INFO platform.
             </p>
-
-
-            <div class="login-notice">
-
-                <h3>Login required</h3>
-
-                <p>
+<div class="login-notice">
+<h3>Login required</h3>
+<p>
                     Log in to submit your feedback about the GAS-INFO website.
                 </p>
-
-                <a href="auth/login.html" class="login-button">
+<a class="login-button" href="auth/login.html">
                     Login / Register
                 </a>
-
-            </div>
-
-
-            <div class="empty-reviews">
-
-                <strong>No website reviews to display yet.</strong>
+</div>
+<div class="empty-reviews">
+<strong>No website reviews to display yet.</strong>
 
                 Website reviews will appear here when real user
                 feedback is available.
 
             </div>
-
-        </section>
-
-
-        <!-- =========================
+</section>
+<!-- =========================
              REVIEW INFORMATION
              ========================= -->
-
-        <section class="review-section">
-
-            <h2>About Ratings &amp; Reviews</h2>
-
-            <p class="section-description">
+<section class="review-section">
+<h2>About Ratings &amp; Reviews</h2>
+<p class="section-description">
                 GAS-INFO uses reviews as a way for users to share
                 useful experiences while keeping the platform focused
                 on gas availability information.
             </p>
-
-            <ul class="review-rules">
-
-                <li>
+<ul class="review-rules">
+<li>
                     Ratings and reviews are user-generated information.
                 </li>
-
-                <li>
+<li>
                     GAS-INFO does not create or invent customer reviews.
                 </li>
-
-                <li>
+<li>
                     Reviews may be moderated when they violate the
                     platform's rules.
                 </li>
-
-                <li>
+<li>
                     Reviews do not guarantee the current availability
                     of gas at a shop.
                 </li>
-
-                <li>
+<li>
                     Stock information is provided by traders and may
                     change after an update.
                 </li>
-
-            </ul>
-
-        </section>
-
-    </main>
-
-
-    <!-- =========================
+</ul>
+</section>
+</main>
+<!-- =========================
          FOOTER
          ========================= -->
-
-    <footer class="site-footer">
-
-        <div class="footer-links">
-
-            <a href="about.html">
-                About Us
-            </a>
-
-            <a href="reviews.html">
-                Rate &amp; Reviews
-            </a>
-
-            <a href="updates.html">
-                Updates
-            </a>
-
-            <a href="terms.html">
-                Terms &amp; Penalties
-            </a>
-
-            <a href="legal.html">
-                Legal &amp; Compliance
-            </a>
-
-            <a href="privacy.html">🔒 Privacy Policy</a>
-
-            <a href="contact.html">
-                Contact / Report
-            </a>
-
-        </div>
-
-        <p class="footer-copy">
-            © 2026 GAS-INFO. Information platform for gas availability.
-        </p>
-
-    </footer>
-
-
-    <!-- =========================
+<footer class="site-footer"><nav aria-label="Footer links" class="site-footer-links">
+<a href="about.html">About Us</a>
+<a href="reviews.html">Rate &amp; Reviews</a>
+<a href="updates.html">Updates</a>
+<a href="terms.html">Terms &amp; Penalties</a>
+<a href="legal.html">Legal &amp; Compliance</a>
+<a href="privacy.html">🔒 Privacy Policy</a>
+<a href="contact.html">Contact / Report</a>
+</nav>
+<p class="site-footer-copy">© 2026 GAS-INFO. Information platform for gas availability.</p></footer>
+<!-- =========================
          JAVASCRIPT
          ========================= -->
 
-    <script>
-
-        document.addEventListener("DOMContentLoaded", function () {
-
-            /* MOBILE MENU */
-
-            const menuToggle =
-                document.getElementById("menuToggle");
-
-            const mainNav =
-                document.getElementById("mainNav");
-
-            if (menuToggle && mainNav) {
-
-                menuToggle.addEventListener("click", function (event) {
-
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    mainNav.classList.toggle("open");
-
-                    const isOpen =
-                        mainNav.classList.contains("open");
-
-                    menuToggle.setAttribute(
-                        "aria-expanded",
-                        isOpen ? "true" : "false"
-                    );
-
-                });
-
-
-                const navLinks =
-                    mainNav.querySelectorAll("a");
-
-                navLinks.forEach(function (link) {
-
-                    link.addEventListener("click", function () {
-
-                        mainNav.classList.remove("open");
-
-                        menuToggle.setAttribute(
-                            "aria-expanded",
-                            "false"
-                        );
-
-                    });
-
-                });
-
-            }
-
-            /* DARK / LIGHT THEME */
-
-const themeToggle = document.getElementById("themeToggle");
-
-if (themeToggle) {
-
-    const savedTheme = localStorage.getItem("gasInfoTheme");
-
-    if (savedTheme === "light") {
-        document.body.classList.add(
-            "light-theme"
-        );
-    }
-
-    themeToggle.addEventListener(
-        "click",
-        function () {
-
-            document.body.classList.toggle(
-                "light-theme"
-            );
-
-            const isLight = document.body.classList.contains(
-                "light-theme"
-            );
-
-            localStorage.setItem(
-                "gasInfoTheme",
-                isLight ? "light" : "dark"
-            );
-        }
-    );
-}
-                                            });
-      
-</script>
 <script src="js/ui-feedback.js"></script>
 <script src="js/reviews-page.js"></script>
-</body>
+<script src="js/script.js"></script></body>
 </html>
-      
-  
