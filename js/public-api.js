@@ -715,6 +715,11 @@
         const root = $("results-list");
 
         await search(filters, root);
+                const nearbyEntry = $("nearby-entry");
+
+        if (nearbyEntry) {
+          nearbyEntry.hidden = false;
+        }
 
         resultsSection?.scrollIntoView({
           behavior: "smooth",
