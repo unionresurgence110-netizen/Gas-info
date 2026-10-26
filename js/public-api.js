@@ -596,21 +596,26 @@
     ].some(value => value !== "");
   }
 
-  async function search(filters, root, kind = "all") {
+  async function search(filters, root, kind = "all", options = {}) {
     if (!root) return;
 
     root.innerHTML =
       `<p class="notice">Searching actual GAS-INFO records…</p>`;
 
-    const queryFilters = { ...filters };
+    // Category pages use global listings.
+    // Search and Nearby keep their own filters.
+    const queryFilters = options.categoryPage
+      ? {}
+      : { ...filters };
 
     if (!queryFilters.quantity) {
       delete queryFilters.quantity;
     }
 
     try {
+      const query = paramsToQuery(queryFilters);
       const data = await request(
-        "/api/search?" + paramsToQuery(queryFilters)
+        "/api/search" + (query ? "?" + query : "")
       );
 
       let results = Array.isArray(data.results)
@@ -619,11 +624,11 @@
 
       if (kind === "high-rated") {
         results = results.filter(
-          record => Number(record.rating) >= 4
+          record => Number(record.rating || 0) >= 4
         );
       } else if (kind === "others") {
         results = results.filter(
-          record => Number(record.rating) < 4
+          record => Number(record.rating || 0) < 4
         );
       }
 
@@ -636,14 +641,24 @@
       const summary = $("search-summary");
 
       if (summary) {
-        const lower = data.lowerQuantityAvailable
-          ? ` Some shops reported a quantity below your requested amount (${esc(data.requestedQuantity)}); check each reported quantity carefully.`
-          : "";
+        if (options.categoryPage) {
+          const labels = {
+            all: "All Shops",
+            "high-rated": "High-Rated Shops (4–5 stars)",
+            others: "Other Shops (below 4 stars)"
+          };
 
-        summary.textContent =
-          `${results.length} result(s) found.${lower}`;
+          summary.textContent =
+            `${labels[kind] || labels.all}: ${results.length} record(s) found.`;
+        } else {
+          const lower = data.lowerQuantityAvailable
+            ? ` Some shops reported quantities below your requested amount (${esc(data.requestedQuantity)}).`
+            : "";
+
+          summary.textContent =
+            `${results.length} result(s) found.${lower}`;
+        }
       }
-
     } catch (error) {
       root.innerHTML =
         `<div class="notice">Could not load results: ${esc(error.message)}</div>`;
@@ -708,9 +723,46 @@
       });
     }
 
-    const root = $("results-list");
+    
+    const isNearbyPage = document.body.dataset.page === "nearby";
+    const categoryKind = document.body.dataset.resultKind;
+
+    const root = isNearbyPage
+      ? $("nearby-results-list")
+      : $("results-list");
 
     if (root && !$("search-form")) {
+      // Category pages must not depend on a previous search.
+      if (categoryKind) {
+        search({}, root, categoryKind, {
+          categoryPage: true
+        });
+        return;
+      }
+
+      // Nearby must use the filters from a valid previous search.
+      if (isNearbyPage) {
+        let filters = {};
+
+        try {
+          filters = JSON.parse(
+            localStorage.getItem("gasInfoLastSearch") || "{}"
+          );
+        } catch {
+          filters = {};
+        }
+
+        if (!hasSearchFilter(filters)) {
+          root.innerHTML =
+            `<div class="notice">Please go to Search / Explore and search for a location or cylinder first. Nearby results will be available after that.</div>`;
+          return;
+        }
+
+        search(filters, root, "nearby");
+        return;
+      }
+
+      // Keep the existing behavior for any other results page.
       let filters = {};
 
       try {
@@ -721,15 +773,13 @@
         filters = {};
       }
 
-      const kind = document.body.dataset.resultKind || "all";
-
       if (!hasSearchFilter(filters)) {
         root.innerHTML =
           `<div class="notice">Go to Search / Explore and enter a location or cylinder name to find matching shops.</div>`;
         return;
       }
 
-            search(filters, root, kind);
+      search(filters, root);
     }
   });
 })();
