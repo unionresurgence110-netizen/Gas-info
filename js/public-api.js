@@ -597,25 +597,25 @@
   }
 
   async function search(filters, root, kind = "all", options = {}) {
-    if (!root) return;
+    if (!root) return false;
 
     root.innerHTML =
       `<p class="notice">Searching actual GAS-INFO records…</p>`;
 
-    // Category pages use global listings.
-    // Search and Nearby keep their own filters.
-    const queryFilters = options.categoryPage
-      ? {}
-      : { ...filters };
+    const queryFilters = { ...(filters || {}) };
+
+    // Category pages intentionally ignore the previous search filters.
+    if (options.categoryPage) {
+      Object.keys(queryFilters).forEach(key => delete queryFilters[key]);
+    }
 
     if (!queryFilters.quantity) {
       delete queryFilters.quantity;
     }
 
     try {
-      const query = paramsToQuery(queryFilters);
       const data = await request(
-        "/api/search" + (query ? "?" + query : "")
+        "/api/search?" + paramsToQuery(queryFilters)
       );
 
       let results = Array.isArray(data.results)
@@ -623,15 +623,14 @@
         : [];
 
       if (kind === "high-rated") {
-        results = results.filter(
-          record => Number(record.rating || 0) >= 4
-        );
+        results = results.filter(record => Number(record.rating) >= 4);
       } else if (kind === "others") {
-        results = results.filter(
-          record => Number(record.rating || 0) < 4
-        );
+        results = results.filter(record => Number(record.rating) < 4);
       }
 
+      // The current backend does not expose a customer-distance ranking field.
+      // Nearby therefore shows real records matching the customer's last search,
+      // without claiming that distance has been calculated.
       root.innerHTML = results.length
         ? results.map(card).join("")
         : `<div class="notice">We are still growing. We don't have matching data yet.</div>`;
@@ -639,33 +638,32 @@
       bindCards(root);
 
       const summary = $("search-summary");
-
       if (summary) {
-        if (options.categoryPage) {
-          const labels = {
-            all: "All Shops",
-            "high-rated": "High-Rated Shops (4–5 stars)",
-            others: "Other Shops (below 4 stars)"
-          };
+        const lower = data.lowerQuantityAvailable && !options.categoryPage
+          ? ` Some shops reported a quantity below your requested amount (${esc(data.requestedQuantity)}); check each reported quantity carefully.`
+          : "";
 
-          summary.textContent =
-            `${labels[kind] || labels.all}: ${results.length} record(s) found.`;
-        } else {
-          const lower = data.lowerQuantityAvailable
-            ? ` Some shops reported quantities below your requested amount (${esc(data.requestedQuantity)}).`
-            : "";
-
-          summary.textContent =
-            `${results.length} result(s) found.${lower}`;
-        }
+        summary.textContent = options.categoryPage
+          ? `${results.length} shop result(s) loaded from current GAS-INFO records.`
+          : `${results.length} result(s) found.${lower}`;
       }
+
+      return true;
     } catch (error) {
       root.innerHTML =
         `<div class="notice">Could not load results: ${esc(error.message)}</div>`;
+      const summary = $("search-summary");
+      if (summary) summary.textContent = "Results could not be loaded. Please try again.";
+      return false;
     }
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    const isNearbyPage = document.body.dataset.page === "nearby";
+    const categoryKind = document.body.dataset.resultKind || "";
+    const resultRoot = $("results-list");
+    const nearbyRoot = $("nearby-results-list");
+
     if ($("search-form")) {
       loadLocations();
 
@@ -695,31 +693,25 @@
             Number(filters.quantity) < 1
           )
         ) {
-          (window.gasInfoNotify || ((m) => console.warn(m)))("Quantity must be at least 1.", "warning");
+          (window.gasInfoNotify || ((m) => console.warn(m)))(
+            "Quantity must be at least 1.", "warning"
+          );
           return;
         }
 
-        localStorage.setItem(
-          "gasInfoLastSearch",
-          JSON.stringify(filters)
-        );
+        localStorage.setItem("gasInfoLastSearch", JSON.stringify(filters));
 
         const resultsSection = $("results");
-
-        if (resultsSection) {
-          resultsSection.style.display = "block";
-        }
-
+        if (resultsSection) resultsSection.style.display = "block";
         form.classList.remove("open");
 
-        const root = $("results-list");
+        const nearbyEntry = $("nearby-entry");
+        if (nearbyEntry) nearbyEntry.hidden = true;
 
-        await search(filters, root);
-                const nearbyEntry = $("nearby-entry");
+        const success = await search(filters, resultRoot);
 
-        if (nearbyEntry) {
-          nearbyEntry.hidden = false;
-        }
+        // Reveal Nearby only after the API returned successfully.
+        if (success && nearbyEntry) nearbyEntry.hidden = false;
 
         resultsSection?.scrollIntoView({
           behavior: "smooth",
@@ -728,66 +720,51 @@
       });
     }
 
-    
-    const isNearbyPage = document.body.dataset.page === "nearby";
-    const categoryKind = document.body.dataset.resultKind;
+    // Category pages are independent of the customer's last search.
+    if (resultRoot && categoryKind) {
+      search({}, resultRoot, categoryKind, { categoryPage: true });
+      return;
+    }
 
-    const root = isNearbyPage
-      ? $("nearby-results-list")
-      : $("results-list");
-
-    if (root && !$("search-form")) {
-      // Category pages must not depend on a previous search.
-      if (categoryKind) {
-        search({}, root, categoryKind, {
-          categoryPage: true
-        });
-        return;
-      }
-
-      // Nearby must use the filters from a valid previous search.
-      if (isNearbyPage) {
-        let filters = {};
-
-        try {
-          filters = JSON.parse(
-            localStorage.getItem("gasInfoLastSearch") || "{}"
-          );
-        } catch {
-          filters = {};
-        }
-
-        if (!hasSearchFilter(filters)) {
-          root.innerHTML =
-            `<div class="notice">Please go to Search / Explore and search for a location or cylinder first. Nearby results will be available after that.</div>`;
-          return;
-        }
-
-        search(filters, root, "nearby");
-        return;
-      }
-
-      // Keep the existing behavior for any other results page.
+    // Nearby page uses the last valid search and actual backend results.
+    if (isNearbyPage && nearbyRoot) {
       let filters = {};
-
       try {
-        filters = JSON.parse(
-          localStorage.getItem("gasInfoLastSearch") || "{}"
-        );
+        filters = JSON.parse(localStorage.getItem("gasInfoLastSearch") || "{}");
       } catch {
         filters = {};
       }
 
       if (!hasSearchFilter(filters)) {
-        root.innerHTML =
+        nearbyRoot.innerHTML =
+          `<div class="notice">Start from Search / Explore and enter a location or cylinder name before opening Nearby.</div>`;
+        const summary = $("search-summary");
+        if (summary) summary.textContent = "No previous search found.";
+        return;
+      }
+
+      search(filters, nearbyRoot, "nearby");
+      return;
+    }
+
+    // Compatibility fallback for any older result page without a category marker.
+    if (resultRoot && !$("search-form")) {
+      let filters = {};
+      try {
+        filters = JSON.parse(localStorage.getItem("gasInfoLastSearch") || "{}");
+      } catch {
+        filters = {};
+      }
+
+      if (!hasSearchFilter(filters)) {
+        resultRoot.innerHTML =
           `<div class="notice">Go to Search / Explore and enter a location or cylinder name to find matching shops.</div>`;
         return;
       }
 
-      search(filters, root);
+      search(filters, resultRoot);
     }
   });
 })();
 
-// ===== PART 4 END =====
 // ===== PART 4 END =====    
