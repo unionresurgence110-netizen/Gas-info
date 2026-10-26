@@ -1,8 +1,29 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nearby | GAS-INFO</title><link rel="stylesheet" href="css/style.css"></head>
-<body><div data-gi-header></div>
-<main class="container"><div class="page-title"><h1>Nearby</h1></div><div class="notice">Nearby results will appear after a search and will use actual GAS-INFO data only. No fake GPS accuracy or demo shops will be shown.</div></main>
-<div data-gi-footer></div>
-<script src="js/script.js"></script><script src="js/common-layout.js"></script>
-</body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Nearby | GAS-INFO</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="nearby">
+  <div data-gi-header></div>
+  <main class="container">
+    <div class="page-title"><h1>Nearby Search Results</h1></div>
+    <p class="muted">
+      These results use your previous search and actual GAS-INFO records.
+      Distance-based sorting is not available here yet. Stock information is
+      trader-provided and may change, so confirm availability before visiting.
+    </p>
+    <p id="search-summary" class="muted" aria-live="polite"></p>
+    <div id="nearby-results-list" aria-live="polite">
+      <p class="notice">Loading results…</p>
+    </div>
+    <p><a class="btn secondary" href="index.html#search">Back to Search</a></p>
+  </main>
+  <div data-gi-footer></div>
+  <script src="js/script.js"></script>
+  <script src="js/public-api.js"></script>
+  <script src="js/common-layout.js"></script>
+</body>
+</html>
