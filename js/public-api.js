@@ -68,8 +68,12 @@
 
         <p>
           <span class="tag">Rating ${Number(r.rating || 0).toFixed(1)}/5 (${esc(r.review_count || 0)} reviews)</span>
-          <span class="tag">Reported stock: ${esc(r.quantity)} ${esc(r.cylinder_name)}</span>
+          <span class="tag">Reported stock: ${esc(r.quantity)} ${esc(r.cylinder_name)}${Number(r.quantity) <= 0 ? " — OUT OF STOCK" : ""}</span>
         </p>
+
+        ${r.distance_km != null && Number.isFinite(Number(r.distance_km))
+          ? `<p class="muted">Approx. straight-line distance: ${Number(r.distance_km).toFixed(2)} km away</p>`
+          : ""}
 
         <p>${esc([
           r.exact_location,
@@ -81,8 +85,8 @@
         ].filter(Boolean).join(", "))}</p>
 
         ${hasCoords
-          ? `<a class="shop-map-link" href="${mapUrl}" target="_blank" rel="noopener noreferrer">View shop pin on map</a>`
-          : `<p class="muted">Map pin not available for this shop yet.</p>`}
+          ? `<p><a class="shop-map-link" href="${mapUrl}" target="_blank" rel="noopener noreferrer">View shop pin on map</a> · <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(r.latitude + "," + r.longitude)}" target="_blank" rel="noopener noreferrer">Get directions</a></p>`
+          : `<p class="muted">Map pin and directions are not available for this shop yet.</p>`}
 
         <p class="muted">
           Last updated: ${esc(r.last_updated_at ? new Date(r.last_updated_at).toLocaleString() : "Unknown")}
@@ -459,6 +463,114 @@
   };
 
   let locationRows = [];
+  let currentSearchLocation = null;
+  let savedSearchLocation = null;
+
+  function locationNote(message, kind = "info") {
+    const note = $("location-note");
+    if (!note) return;
+    note.textContent = message;
+    note.classList.toggle("error", kind === "error");
+  }
+
+  function applySearchLocation(location, message) {
+    if (!location || !Number.isFinite(Number(location.latitude)) || !Number.isFinite(Number(location.longitude))) {
+      locationNote("That location could not be used. Please try again.", "error");
+      return;
+    }
+    currentSearchLocation = {
+      latitude: Number(location.latitude),
+      longitude: Number(location.longitude),
+      label: String(location.label || "Selected location")
+    };
+    locationNote(message || `${currentSearchLocation.label} selected. Press Search to find nearby shops.`);
+  }
+
+  function getCurrentLocation() {
+    if (!navigator.geolocation) {
+      locationNote("This browser does not support location. Enable location services or use the text fields to search.", "error");
+      return;
+    }
+    locationNote("Requesting your current location…");
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        applySearchLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          label: "Current location"
+        }, "Current location found. Press Search to find nearby shops, or Save My Location to keep it in your account.");
+      },
+      error => {
+        let message = "Could not get your location. Enable device location and allow location permission for this browser, then tap Use My Location to retry.";
+        if (error && error.code === 1) message = "Location permission was denied. Enable location permission for this browser in your device/app settings, then tap Use My Location to retry.";
+        else if (error && error.code === 2) message = "Your device could not determine the location. Turn on device location/GPS, then tap Use My Location to retry.";
+        else if (error && error.code === 3) message = "Location request timed out. Check device location/GPS, then tap Use My Location to retry.";
+        locationNote(message, "error");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    );
+  }
+
+  async function loadSavedLocation() {
+    if (!getToken()) return;
+    try {
+      const data = await request("/api/customer/location");
+      savedSearchLocation = data.location || null;
+      if ($("use-saved-location")) $("use-saved-location").hidden = !savedSearchLocation;
+      if ($("clear-saved-location")) $("clear-saved-location").hidden = !savedSearchLocation;
+      if (savedSearchLocation) locationNote(`Saved location available: ${savedSearchLocation.label || "Saved location"}. You can use it for this search.`);
+    } catch (error) {
+      // Keep guest search usable; account-location loading is optional.
+      console.warn("Saved location could not be loaded:", error.message);
+    }
+  }
+
+  async function saveCurrentLocation() {
+    if (!getToken()) {
+      locationNote("To save a location to your account, please log in or register. You can still use My Location without an account.");
+      const note = $("location-note");
+      if (note) {
+        const link = document.createElement("a");
+        link.href = "auth/login.html";
+        link.textContent = " Log in / Register";
+        note.appendChild(link);
+      }
+      return;
+    }
+    if (!currentSearchLocation) {
+      locationNote("First tap Use My Location and allow location permission. You can then save that location.", "error");
+      return;
+    }
+    try {
+      const data = await request("/api/customer/location", {
+        method: "PUT",
+        body: JSON.stringify({
+          latitude: currentSearchLocation.latitude,
+          longitude: currentSearchLocation.longitude,
+          label: currentSearchLocation.label || "Saved location"
+        })
+      });
+      savedSearchLocation = data.location;
+      if ($("use-saved-location")) $("use-saved-location").hidden = false;
+      if ($("clear-saved-location")) $("clear-saved-location").hidden = false;
+      locationNote("Location saved to your account. It stays saved until you update or clear it.");
+    } catch (error) {
+      locationNote(`Could not save location: ${error.message}`, "error");
+    }
+  }
+
+  async function clearSavedLocation() {
+    if (!getToken()) return;
+    try {
+      await request("/api/customer/location", { method: "DELETE" });
+      savedSearchLocation = null;
+      if ($("use-saved-location")) $("use-saved-location").hidden = true;
+      if ($("clear-saved-location")) $("clear-saved-location").hidden = true;
+      locationNote("Saved location cleared from your account.");
+    } catch (error) {
+      locationNote(`Could not clear saved location: ${error.message}`, "error");
+    }
+  }
 
   function uniqueValues(values) {
     return [...new Set(
@@ -580,7 +692,11 @@
       town: String(formData.get("town") || "").trim(),
       location: String(formData.get("location") || "").trim(),
       cylinder: String(formData.get("cylinder") || "").trim(),
-      quantity: String(formData.get("quantity") || "").trim()
+      quantity: String(formData.get("quantity") || "").trim(),
+      ...(currentSearchLocation ? {
+        latitude: String(currentSearchLocation.latitude),
+        longitude: String(currentSearchLocation.longitude)
+      } : {})
     };
   }
 
@@ -592,7 +708,9 @@
       filters.ward,
       filters.town,
       filters.location,
-      filters.cylinder
+      filters.cylinder,
+      filters.latitude,
+      filters.longitude
     ].some(value => value !== "");
   }
 
@@ -603,6 +721,8 @@
       `<p class="notice">Searching actual GAS-INFO records…</p>`;
 
     const queryFilters = { ...(filters || {}) };
+    if (options.lowerQuantityOnly) queryFilters.lowerQuantityOnly = "true";
+    if (options.allowLocationFallback) queryFilters.allowLocationFallback = "true";
 
     // Category pages intentionally ignore the previous search filters.
     if (options.categoryPage) {
@@ -628,24 +748,44 @@
         results = results.filter(record => Number(record.rating) < 4);
       }
 
-      // The current backend does not expose a customer-distance ranking field.
-      // Nearby therefore shows real records matching the customer's last search,
-      // without claiming that distance has been calculated.
-      root.innerHTML = results.length
+      // The backend returns distance_km and ranks by distance when valid customer
+      // coordinates are supplied. Without coordinates, it uses progressive text-location matching.
+      const missingFields = Array.isArray(data.unmatchedLocationFields) ? data.unmatchedLocationFields : [];
+      const missingLocationNote = missingFields.length && !options.categoryPage
+        ? `<div class="notice">We don't have matching location data for: ${missingFields.map(esc).join(", ")}.</div>`
+        : "";
+      const fallbackPrompt = data.fallbackAvailable && !options.categoryPage
+        ? `<div class="notice"><p>Would you like to continue using the other location details you entered? Results may be from a broader area, so check each shop's address.</p><button class="btn secondary" id="continue-location-fallback" type="button">Search using available location details</button></div>`
+        : "";
+      root.innerHTML = missingLocationNote + fallbackPrompt + (results.length
         ? results.map(card).join("")
-        : `<div class="notice">We are still growing. We don't have matching data yet.</div>`;
+        : options.lowerQuantityOnly
+          ? `<div class="notice">No shops currently report a positive quantity below your requested amount. Stock information may change after a trader updates it.</div>`
+          : missingFields.length && !data.fallbackAvailable && !options.allowLocationFallback
+            ? `<div class="notice">No matching location details were found. Try a broader location or search by cylinder name.</div>`
+            : !results.length && options.allowLocationFallback
+              ? `<div class="notice">No actual shops match the available location details yet. Try a broader location or search by cylinder name.</div>`
+              : `<div class="notice">We are still growing. We don't have the data yet.</div>`);
 
       bindCards(root);
+      $("continue-location-fallback")?.addEventListener("click", () => {
+        search(filters, root, kind, { ...options, allowLocationFallback: true });
+      });
+
+      if (data.lowerQuantityAvailable && !options.categoryPage && !options.lowerQuantityOnly && !data.fallbackAvailable && Number(data.requestedQuantity) > 1) {
+        root.insertAdjacentHTML("beforeend", `<div class="notice"><p>Some shops report a positive quantity below your requested amount (${esc(data.requestedQuantity)}).</p><button class="btn secondary" id="show-lower-quantity" type="button">Show shops with lower quantity</button></div>`);
+        $("show-lower-quantity")?.addEventListener("click", () => {
+          search(filters, root, kind, { ...options, lowerQuantityOnly: true });
+        });
+      }
 
       const summary = $("search-summary");
       if (summary) {
-        const lower = data.lowerQuantityAvailable && !options.categoryPage
-          ? ` Some shops reported a quantity below your requested amount (${esc(data.requestedQuantity)}); check each reported quantity carefully.`
-          : "";
-
         summary.textContent = options.categoryPage
           ? `${results.length} shop result(s) loaded from current GAS-INFO records.`
-          : `${results.length} result(s) found.${lower}`;
+          : options.lowerQuantityOnly
+            ? `${results.length} shop(s) report a positive quantity below your requested amount.`
+            : `${results.length} result(s) found.`;
       }
 
       return true;
@@ -666,10 +806,25 @@
 
     if ($("search-form")) {
       loadLocations();
+      loadSavedLocation();
+      $("use-my-location")?.addEventListener("click", getCurrentLocation);
+      $("save-my-location")?.addEventListener("click", saveCurrentLocation);
+      $("use-saved-location")?.addEventListener("click", () => {
+        if (savedSearchLocation) applySearchLocation(savedSearchLocation, `Saved location selected (${savedSearchLocation.label || "Saved location"}). Press Search to continue.`);
+      });
+      $("clear-saved-location")?.addEventListener("click", clearSavedLocation);
 
       ["province", "district", "municipality", "ward"].forEach(id => {
         $(id)?.addEventListener("input", updateSuggestions);
         $(id)?.addEventListener("change", updateSuggestions);
+      });
+      ["province", "district", "municipality", "ward", "town", "location"].forEach(id => {
+        $(id)?.addEventListener("input", () => {
+          if (currentSearchLocation) {
+            currentSearchLocation = null;
+            locationNote("Manual location details selected. Search will use those details instead of GPS coordinates.");
+          }
+        });
       });
 
       const form = $("search-form");
