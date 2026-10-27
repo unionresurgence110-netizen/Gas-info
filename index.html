@@ -25,6 +25,8 @@
   gap:14px;
   align-items:center;
 }
+#use-saved-location[hidden],#clear-saved-location[hidden]{display:none!important;}
+.location-actions{flex-wrap:wrap;}
 </style>
 </head>
 
@@ -104,6 +106,12 @@
         </div>
       </div>
 
+      <div class="tabs location-actions" aria-label="Search location options">
+        <button id="use-my-location" class="btn secondary" type="button">Use My Location</button>
+        <button id="save-my-location" class="btn secondary" type="button">Save My Location</button>
+        <button id="use-saved-location" class="btn secondary" type="button" hidden>Use Saved Location</button>
+        <button id="clear-saved-location" class="btn secondary" type="button" hidden>Clear Saved Location</button>
+      </div>
       <button class="btn" type="submit">Search</button>
       <button class="btn secondary" type="button"
               onclick="closeSearch()">Close</button>
