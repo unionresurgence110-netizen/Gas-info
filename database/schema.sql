@@ -17,7 +17,13 @@ CREATE TABLE IF NOT EXISTS users (
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    last_login_at TIMESTAMPTZ
+    last_login_at TIMESTAMPTZ,
+    saved_latitude DOUBLE PRECISION CHECK (saved_latitude IS NULL OR saved_latitude BETWEEN -90 AND 90),
+    saved_longitude DOUBLE PRECISION CHECK (saved_longitude IS NULL OR saved_longitude BETWEEN -180 AND 180),
+    saved_location_label VARCHAR(180),
+    saved_location_updated_at TIMESTAMPTZ,
+    CHECK ((saved_latitude IS NULL AND saved_longitude IS NULL) OR
+           (saved_latitude IS NOT NULL AND saved_longitude IS NOT NULL))
 );
 
 -- 2. Location catalogue. Records are added only from verified/approved location data.
