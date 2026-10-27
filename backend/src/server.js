@@ -136,15 +136,99 @@ app.post('/api/account/delete',accountActionLimiter,auth,getActiveUser,asyncRout
 
 app.get('/api/locations', asyncRoute(async (req,res) => {
  const {province,district,municipality}=req.query;
- const r=await pool.query(`SELECT DISTINCT province,district,municipality,ward_no,town_village,exact_location FROM locations WHERE status='active' AND ($1::text IS NULL OR province=$1) AND ($2::text IS NULL OR district=$2) AND ($3::text IS NULL OR municipality=$3) ORDER BY province,district,municipality,ward_no,town_village,exact_location LIMIT 1000`,[province||null,district||null,municipality||null]);
+ // Combine the verified location catalogue with active shop addresses so suggestions
+ // stay useful even when a shop address has not separately been added to locations.
+ const r=await pool.query(`SELECT DISTINCT province,district,municipality,ward_no,town_village,exact_location
+ FROM (
+   SELECT province,district,municipality,ward_no,town_village,exact_location FROM locations WHERE status='active'
+   UNION
+   SELECT province,district,municipality,ward_no,town_village,exact_location FROM shops WHERE shop_status='active'
+ ) available
+ WHERE ($1::text IS NULL OR province=$1)
+   AND ($2::text IS NULL OR district=$2)
+   AND ($3::text IS NULL OR municipality=$3)
+ ORDER BY province,district,municipality,ward_no,town_village,exact_location LIMIT 1000`,
+ [province||null,district||null,municipality||null]);
  res.json({locations:r.rows, count:r.rowCount});
 }));
 app.get('/api/search', asyncRoute(async (req,res) => {
  const cylinder=text(req.query.cylinder,120), province=text(req.query.province,120), district=text(req.query.district,120), municipality=text(req.query.municipality,160), ward=text(req.query.ward,20), town=text(req.query.town,160), location=text(req.query.location,255);
- const qty=Math.max(0,Math.min(10000,Number.parseInt(req.query.quantity||'1',10)||1));
- const r=await pool.query(`SELECT s.shop_id,s.shop_name,s.phone,s.province,s.district,s.municipality,s.ward_no,s.town_village,s.exact_location,s.latitude,s.longitude,st.cylinder_name,st.quantity,st.last_updated_at,COALESCE(rv.rating,0)::numeric(3,2) AS rating,COALESCE(rv.review_count,0)::int AS review_count FROM shops s JOIN stock st ON st.shop_id=s.shop_id LEFT JOIN (SELECT shop_id,AVG(rating) rating,COUNT(*) review_count FROM reviews WHERE status='active' GROUP BY shop_id) rv ON rv.shop_id=s.shop_id WHERE s.shop_status='active' AND ($1='' OR LOWER(st.cylinder_name)=LOWER($1) OR LOWER(st.cylinder_name) LIKE '%'||LOWER($1)||'%') AND ($2='' OR s.province=$2) AND ($3='' OR s.district=$3) AND ($4='' OR s.municipality=$4) AND ($5='' OR COALESCE(s.ward_no,'')=$5) AND ($6='' OR COALESCE(s.town_village,'') ILIKE '%'||$6||'%') AND ($7='' OR s.exact_location ILIKE '%'||$7||'%') ORDER BY CASE WHEN $1<>'' AND LOWER(st.cylinder_name)=LOWER($1) THEN 0 WHEN $1<>'' AND LOWER(st.cylinder_name) LIKE '%'||LOWER($1)||'%' THEN 1 ELSE 2 END, (st.quantity >= $8) DESC, (st.quantity >= $8 AND st.quantity>0) DESC, COALESCE(rv.rating,0) DESC, st.last_updated_at DESC LIMIT 100`,[cylinder,province,district,municipality,ward,town,location,qty]);
- const lower=r.rows.filter(x=>Number(x.quantity)<qty);
- res.json({ results:r.rows, count:r.rowCount, requestedQuantity:qty, lowerQuantityAvailable:lower.length>0, disclaimer:'Stock information is provided by the trader and may change at any time. Please check the latest information before visiting.' });
+ const qty=Math.max(1,Math.min(10000,Number.parseInt(req.query.quantity||'1',10)||1));
+ const lat=Number(req.query.latitude), lon=Number(req.query.longitude);
+ const hasCoordinates=req.query.latitude!==undefined && req.query.longitude!==undefined && Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat)<=90 && Math.abs(lon)<=180;
+ const r=await pool.query(`SELECT s.shop_id,s.shop_name,s.phone,s.province,s.district,s.municipality,s.ward_no,s.town_village,s.exact_location,s.latitude,s.longitude,st.cylinder_name,st.quantity,st.last_updated_at,COALESCE(rv.rating,0)::numeric(3,2) AS rating,COALESCE(rv.review_count,0)::int AS review_count FROM shops s JOIN stock st ON st.shop_id=s.shop_id LEFT JOIN (SELECT shop_id,AVG(rating) rating,COUNT(*) review_count FROM reviews WHERE status='active' GROUP BY shop_id) rv ON rv.shop_id=s.shop_id WHERE s.shop_status='active' AND ($1='' OR LOWER(st.cylinder_name)=LOWER($1) OR LOWER(st.cylinder_name) LIKE '%'||LOWER($1)||'%') LIMIT 5000`,[cylinder]);
+ const norm=v=>String(v??'').trim().toLocaleLowerCase().replace(/\s+/g,' ');
+ const matches=(actual,wanted)=>{const a=norm(actual),w=norm(wanted);return !!a&&!!w&&(a===w||a.includes(w)||w.includes(a));};
+ const hasTextLocation=!!(province||district||municipality||ward||town||location);
+ const requestedLocationFields=[
+  ['province','Province',province],['district','District',district],['municipality','Municipality',municipality],
+  ['ward_no','Ward',ward],['town_village','Town/Village',town],['exact_location','Exact Location',location]
+ ].filter(field=>field[2]);
+ let unmatchedLocationFields=[];
+ if(requestedLocationFields.length){
+  const catalogue=await pool.query(`SELECT province,district,municipality,ward_no,town_village,exact_location FROM locations WHERE status='active'
+   UNION SELECT province,district,municipality,ward_no,town_village,exact_location FROM shops WHERE shop_status='active'`);
+  unmatchedLocationFields=requestedLocationFields.filter(([column,,value])=>!catalogue.rows.some(row=>matches(row[column],value))).map(([,label])=>label);
+ }
+ const locationScore=shop=>{
+  let score=0;
+  if(matches(shop.province,province))score+=1;
+  if(matches(shop.district,district))score+=2;
+  if(matches(shop.municipality,municipality))score+=3;
+  if(matches(shop.ward_no,ward))score+=4;
+  if(matches(shop.town_village,town))score+=5;
+  if(matches(shop.exact_location,location))score+=6;
+  return score;
+ };
+ const distanceKm=shop=>{
+  if(!hasCoordinates||shop.latitude===null||shop.latitude===undefined||shop.longitude===null||shop.longitude===undefined)return null;
+  const slat=Number(shop.latitude), slon=Number(shop.longitude);
+  if(!Number.isFinite(slat)||!Number.isFinite(slon)||Math.abs(slat)>90||Math.abs(slon)>180)return null;
+  const rad=n=>n*Math.PI/180, dLat=rad(slat-lat), dLon=rad(slon-lon);
+  const a=Math.sin(dLat/2)**2+Math.cos(rad(lat))*Math.cos(rad(slat))*Math.sin(dLon/2)**2;
+  return 6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(Math.max(0,1-a)));
+ };
+ const ranked=r.rows.map(shop=>({...shop,location_match_score:locationScore(shop),distance_km:distanceKm(shop)}));
+ const stockRank=shop=>{
+  const n=Number(shop.quantity);
+  if(n<=0)return [2,0];
+  if(n>=qty)return [0,n];
+  return [1,n];
+ };
+ // When text location was entered, never return unrelated shops if none of the
+ // requested location details match any part of their real address.
+ const locationEligible=hasTextLocation
+   ? ranked.filter(shop=>shop.location_match_score>0)
+   : ranked;
+ locationEligible.sort((a,b)=>{
+  const aCylinder=norm(a.cylinder_name)===norm(cylinder)?0:1, bCylinder=norm(b.cylinder_name)===norm(cylinder)?0:1;
+  if(cylinder&&(aCylinder!==bCylinder))return aCylinder-bCylinder;
+  // Stock suitability comes first; distance (when supplied) or text-location match
+  // then ranks shops within the same stock tier, followed by rating and freshness.
+  const as=stockRank(a),bs=stockRank(b);
+  if(as[0]!==bs[0])return as[0]-bs[0];
+  if(as[1]!==bs[1])return bs[1]-as[1];
+  if(hasCoordinates){
+   if(a.distance_km!==null&&b.distance_km===null)return -1;
+   if(a.distance_km===null&&b.distance_km!==null)return 1;
+   if(a.distance_km!==null&&b.distance_km!==null&&Math.abs(a.distance_km-b.distance_km)>0.01)return a.distance_km-b.distance_km;
+  }else if(hasTextLocation&&a.location_match_score!==b.location_match_score){
+   return b.location_match_score-a.location_match_score;
+  }
+  const rating=Number(b.rating)-Number(a.rating); if(rating)return rating;
+  const freshness=new Date(b.last_updated_at||0)-new Date(a.last_updated_at||0); if(freshness)return freshness;
+  return String(a.shop_id).localeCompare(String(b.shop_id));
+ });
+ const lowerQuantityAvailable=locationEligible.some(x=>Number(x.quantity)>0&&Number(x.quantity)<qty);
+ const lowerQuantityOnly=String(req.query.lowerQuantityOnly||'').toLowerCase()==='true';
+ const allowLocationFallback=String(req.query.allowLocationFallback||'').toLowerCase()==='true';
+ const fallbackAvailable=unmatchedLocationFields.length>0&&locationEligible.length>0&&!allowLocationFallback;
+ const needsLocationFallback=unmatchedLocationFields.length>0&&!allowLocationFallback;
+ const eligible=lowerQuantityOnly
+   ? locationEligible.filter(x=>Number(x.quantity)>0&&Number(x.quantity)<qty)
+   : locationEligible;
+ const results=needsLocationFallback?[]:eligible.slice(0,100);
+ res.json({results,count:results.length,requestedQuantity:qty,lowerQuantityAvailable,lowerQuantityOnly,unmatchedLocationFields,fallbackAvailable,allowLocationFallback,locationMode:hasCoordinates?'distance':hasTextLocation?'progressive-match':'none',disclaimer:'Stock information is provided by the trader and may change at any time. Please check the latest information before visiting.'});
 }));
 
 app.post('/api/trader/shops/check-duplicate',duplicateCheckLimiter,asyncRoute(async(req,res)=>{const name=text(req.body.shop_name,180),municipality=text(req.body.municipality,160),phone=text(req.body.phone,40),businessEmail=text(req.body.business_email,254).toLowerCase();if(!name||!municipality)return fail(res,400,'Shop name and municipality are required');const r=await pool.query(`SELECT EXISTS(SELECT 1 FROM shops WHERE shop_status IN ('active','pending','suspended') AND ((LOWER(shop_name)=LOWER($1) AND LOWER(municipality)=LOWER($2)) OR ($3<>'' AND phone=$3) OR ($4<>'' AND LOWER(COALESCE(business_email,''))=LOWER($4)))) AS possible_duplicate`,[name,municipality,phone,businessEmail]);res.json({possibleDuplicate:r.rows[0].possible_duplicate,message:r.rows[0].possible_duplicate?'You may have already registered this shop. Please check your existing account before creating a new listing.':'No strong duplicate match found.'});}));
@@ -196,6 +280,26 @@ app.get('/api/notifications',auth,getActiveUser,asyncRoute(async(req,res)=>{cons
 app.patch('/api/notifications/:id/read',auth,getActiveUser,asyncRoute(async(req,res)=>{const r=await pool.query('UPDATE notifications SET is_read=TRUE WHERE notification_id=$1 AND user_id=$2 RETURNING *',[req.params.id,req.user.user_id]);if(!r.rowCount)return fail(res,404,'Notification not found');res.json({notification:r.rows[0]});}));
 
 // Profile and dashboard endpoints. Every private query is scoped to the authenticated user.
+app.get('/api/customer/location',auth,getActiveUser,asyncRoute(async(req,res)=>{
+ if(req.user.role!=='customer')return fail(res,403,'Saved location is available to customer accounts only.');
+ const r=await pool.query('SELECT saved_latitude,saved_longitude,saved_location_label,saved_location_updated_at FROM users WHERE user_id=$1',[req.user.user_id]);
+ const row=r.rows[0];
+ const saved=row && row.saved_latitude!==null && row.saved_longitude!==null;
+ res.json({location:saved?{latitude:Number(row.saved_latitude),longitude:Number(row.saved_longitude),label:row.saved_location_label||'Saved location',updated_at:row.saved_location_updated_at}:null});
+}));
+app.put('/api/customer/location',auth,getActiveUser,asyncRoute(async(req,res)=>{
+ if(req.user.role!=='customer')return fail(res,403,'Saved location is available to customer accounts only.');
+ const latitude=Number(req.body.latitude),longitude=Number(req.body.longitude),label=text(req.body.label,180)||'Saved location';
+ if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180)return fail(res,400,'A valid location is required before saving.');
+ const r=await pool.query('UPDATE users SET saved_latitude=$1,saved_longitude=$2,saved_location_label=$3,saved_location_updated_at=NOW(),updated_at=NOW() WHERE user_id=$4 RETURNING saved_latitude,saved_longitude,saved_location_label,saved_location_updated_at',[latitude,longitude,label,req.user.user_id]);
+ const row=r.rows[0];res.json({location:{latitude:Number(row.saved_latitude),longitude:Number(row.saved_longitude),label:row.saved_location_label,updated_at:row.saved_location_updated_at},message:'Location saved to your account.'});
+}));
+app.delete('/api/customer/location',auth,getActiveUser,asyncRoute(async(req,res)=>{
+ if(req.user.role!=='customer')return fail(res,403,'Saved location is available to customer accounts only.');
+ await pool.query('UPDATE users SET saved_latitude=NULL,saved_longitude=NULL,saved_location_label=NULL,saved_location_updated_at=NULL,updated_at=NOW() WHERE user_id=$1',[req.user.user_id]);
+ res.json({location:null,message:'Saved location cleared.'});
+}));
+
 app.patch('/api/profile',auth,getActiveUser,asyncRoute(async(req,res)=>{
  const username=text(req.body.username,50), email=text(req.body.email,254).toLowerCase();
  if(!/^[\p{L}\p{N}_.-]{3,50}$/u.test(username)||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail(res,400,'Enter a valid username and email');
@@ -222,6 +326,27 @@ app.get('/api/admin/overview',auth,getActiveUser,roles('admin'),asyncRoute(async
  pool.query('SELECT COUNT(*)::int AS total,COUNT(*) FILTER(WHERE status IN (\'open\',\'trader_response_requested\',\'under_review\'))::int AS open FROM reports'),
  pool.query("SELECT COUNT(*)::int AS total FROM reviews WHERE status='active'"),
  pool.query("SELECT COUNT(*)::int AS total FROM stock WHERE last_updated_at < NOW()-INTERVAL '6 hours'")]);res.json({users:users.rows[0],shops:shops.rows[0],reports:reports.rows[0],reviews:reviews.rows[0],staleStock:stale.rows[0].total});
+}));
+app.post('/api/admin/notifications',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{
+ const title=text(req.body.title,180), message=text(req.body.message,3000), audience=text(req.body.audience,20);
+ if(title.length<3||message.length<3)return fail(res,400,'A title and message of at least 3 characters are required.');
+ if(!['all','trader','customer'].includes(audience))return fail(res,400,'Choose all, trader, or customer as the audience.');
+ const client=await pool.connect();
+ try{
+  await client.query('BEGIN');
+  const sent=await client.query(`INSERT INTO notifications(user_id,type,title,message)
+   SELECT user_id,'admin_announcement',$2,$3 FROM users
+   WHERE role IN ('customer','trader')
+     AND account_status IN ('active','warning')
+     AND ($1='all' OR role=$1)
+   RETURNING notification_id`,[audience,title,message]);
+  await client.query('INSERT INTO moderation_logs(admin_id,action,reason) VALUES($1,$2,$3)',[
+   req.user.user_id,'admin_announcement_sent',
+   `Audience: ${audience}; recipients: ${sent.rowCount}; title: ${title}; message: ${message}`
+  ]);
+  await client.query('COMMIT');
+  res.status(201).json({sent:sent.rowCount,audience,message:`Notice sent to ${sent.rowCount} eligible account(s).`});
+ }catch(e){try{await client.query('ROLLBACK')}catch{};throw e;}finally{client.release();}
 }));
 app.get('/api/admin/users',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{const r=await pool.query('SELECT user_id,username,email,role,account_status,created_at,last_login_at FROM users ORDER BY created_at DESC LIMIT 300');res.json({users:r.rows});}));
 app.patch('/api/admin/users/:id/status',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{
@@ -271,11 +396,82 @@ app.post('/api/website-reviews',auth,getActiveUser,asyncRoute(async(req,res)=>{i
 app.get('/api/admin/website-reviews',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{const r=await pool.query(`SELECT wr.review_id,wr.rating,wr.review_text,wr.status,wr.created_at,u.username FROM website_reviews wr JOIN users u ON u.user_id=wr.user_id ORDER BY wr.created_at DESC LIMIT 300`);res.json({reviews:r.rows});}));
 app.patch('/api/admin/website-reviews/:id/status',auth,getActiveUser,roles('admin'),asyncRoute(async(req,res)=>{const status=text(req.body.status,20),reason=text(req.body.reason,1000);if(!['active','hidden','removed'].includes(status)||!reason)return fail(res,400,'Valid review status and reason are required');const r=await pool.query('UPDATE website_reviews SET status=$1,updated_at=NOW() WHERE review_id=$2 RETURNING review_id,status,user_id',[status,req.params.id]);if(!r.rowCount)return fail(res,404,'Website review not found');await pool.query('INSERT INTO moderation_logs(admin_id,target_user_id,action,reason) VALUES($1,$2,$3,$4)',[req.user.user_id,r.rows[0].user_id,'website_review_status:'+status,reason]);res.json({review:r.rows[0]});}));
 
+// Create one in-app reminder for each stock record that has gone stale for 6 hours.
+// notification_events lets a later stock update become eligible for a fresh reminder.
+async function processStockUpdateReminders(){
+ const client=await pool.connect();
+ let locked=false, inTransaction=false;
+ try{
+  const lock=await client.query('SELECT pg_try_advisory_lock($1) AS acquired',[6810261027]);
+  locked=Boolean(lock.rows[0]?.acquired);
+  if(!locked)return 0;
+  await client.query('BEGIN');inTransaction=true;
+  const result=await client.query(`
+   WITH stale AS (
+    SELECT st.stock_id,st.cylinder_name,st.last_updated_at,sh.shop_id,sh.shop_name,sh.owner_user_id
+    FROM stock st
+    JOIN shops sh ON sh.shop_id=st.shop_id
+    JOIN users u ON u.user_id=sh.owner_user_id
+    WHERE st.last_updated_at <= NOW()-INTERVAL '6 hours'
+      AND sh.shop_status IN ('active','pending')
+      AND u.role='trader'
+      AND u.account_status IN ('active','warning')
+   ),
+   new_events AS (
+    INSERT INTO notification_events(user_id,event_type,related_id,status,processed_at)
+    SELECT s.owner_user_id,'stock_update_reminder',s.stock_id,'sent',NOW()
+    FROM stale s
+    WHERE NOT EXISTS (
+     SELECT 1 FROM notification_events e
+     WHERE e.user_id=s.owner_user_id
+       AND e.event_type='stock_update_reminder'
+       AND e.related_id=s.stock_id
+       AND e.created_at >= s.last_updated_at
+    )
+    RETURNING user_id,related_id
+   )
+   INSERT INTO notifications(user_id,type,title,message)
+   SELECT ne.user_id,'stock_update_reminder','Time to update your stock',
+     'Your reported stock for '||st.cylinder_name||' at "'||sh.shop_name||
+     '" has not been updated for over 6 hours. Please review and update the reported quantity.'
+   FROM new_events ne
+   JOIN stock st ON st.stock_id=ne.related_id
+   JOIN shops sh ON sh.shop_id=st.shop_id
+   RETURNING notification_id
+  `);
+  await client.query('COMMIT');inTransaction=false;
+  return result.rowCount;
+ }catch(error){
+  if(inTransaction){try{await client.query('ROLLBACK')}catch{}}
+  throw error;
+ }finally{
+  if(locked){try{await client.query('SELECT pg_advisory_unlock($1)',[6810261027])}catch{}}
+  client.release();
+ }
+}
+
+// Optional external scheduler hook for hosting plans that sleep while idle.
+// Configure CRON_SECRET and call this endpoint with x-cron-secret to run the same safe sweep.
+app.post('/api/internal/jobs/stock-reminders',asyncRoute(async(req,res)=>{
+ const secret=process.env.CRON_SECRET;
+ if(!secret)return fail(res,404,'Not found');
+ const provided=String(req.get('x-cron-secret')||'');
+ const expected=Buffer.from(secret),actual=Buffer.from(provided);
+ if(!provided||actual.length!==expected.length||!crypto.timingSafeEqual(actual,expected))return fail(res,401,'Unauthorized');
+ const notificationsCreated=await processStockUpdateReminders();
+ res.json({ok:true,notificationsCreated});
+}));
+
 app.use((req,res)=>fail(res,404,'API route not found'));
 app.use((err,req,res,next)=>{console.error(err); if(err.code==='23503')return fail(res,400,'Referenced record does not exist'); if(err.code==='22P02')return fail(res,400,'Invalid ID or field format'); res.status(500).json({error:'Internal server error'});});
 const port=Number(process.env.PORT)||3000;
 if(!process.env.JWT_SECRET || process.env.JWT_SECRET.length<32) console.warn('WARNING: Set JWT_SECRET to a random secret of at least 32 characters.');
-app.listen(port,'0.0.0.0',()=>console.log(`GAS-INFO API listening on ${port}`));
+app.listen(port,'0.0.0.0',()=>{
+ console.log(`GAS-INFO API listening on ${port}`);
+ setTimeout(()=>processStockUpdateReminders().then(n=>{if(n)console.log(`Created ${n} stock reminder(s).`)}).catch(e=>console.error('Stock reminder sweep failed:',e.message)),15000).unref();
+});
+const stockReminderTimer=setInterval(()=>processStockUpdateReminders().then(n=>{if(n)console.log(`Created ${n} stock reminder(s).`)}).catch(e=>console.error('Stock reminder sweep failed:',e.message)),10*60*1000);
+stockReminderTimer.unref();
 // ========== PART 3 END ==========
                                                                     
  
